@@ -1,22 +1,21 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Factories;
 
-use App\Models\Division;
-use App\Models\Employee;
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-class DatabaseSeeder extends Seeder
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Division>
+ */
+class DivisionFactory extends Factory
 {
     /**
-     * Seed the application's database.
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
      */
-    public function run(): void
+    public function definition(): array
     {
-        User::factory(1)->create();
-
         $divisions = [
             "Impo",
             "Manda",
@@ -36,7 +35,6 @@ class DatabaseSeeder extends Seeder
             "ORED",
             "LD",
             "RD",
-            "PMD",
         ];
 
         $colors = [
@@ -58,17 +56,11 @@ class DatabaseSeeder extends Seeder
             "#E74C3C", // ORED
             "#F39C12", // LD
             "#16A085", // RD
-            "#E67E22", // PMD
         ];
 
-        foreach ($divisions as $index => $name) {
-            Division::create([
-                'division_name' => $name,
-                'division_color' => $colors[$index]
-            ]);
-        }
-
-        Employee::factory(7)->create();
-
+        return [
+            'division_name' => $this->faker->randomElement($divisions),
+            'division_color' => $this->faker->randomElement($colors)
+        ];
     }
 }
