@@ -195,6 +195,18 @@ export default function AuthenticatedLayout({ header, children }) {
                                     >
                                         Dashboard
                                     </NavLink>
+                                    <NavLink
+                                        href={route('task.index')}
+                                        active={route().current('task.index')}
+                                    >
+                                        Tasks
+                                    </NavLink>
+                                    <NavLink
+                                        href={route('timeline.index')}
+                                        active={route().current('timeline.index')}
+                                    >
+                                        Timeline
+                                    </NavLink>
                                 </div>
                             </div>
                             <div className="hidden sm:ms-6 sm:flex sm:items-center space-x-4">
@@ -287,6 +299,18 @@ export default function AuthenticatedLayout({ header, children }) {
                                 active={route().current('dashboard.index')}
                             >
                                 Dashboard
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                href={route('task.index')}
+                                active={route().current('task.index')}
+                            >
+                                Tasks
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                href={route('timeline.index')}
+                                active={route().current('timeline.index')}
+                            >
+                                Timeline
                             </ResponsiveNavLink>
                         </div>
 
