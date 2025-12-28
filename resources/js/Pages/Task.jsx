@@ -150,7 +150,7 @@ export default function Task() {
             <MainContainer>
                 <div className="flex flex-col gap-8">
                     <TaskTable
-                        borderColor="border-gray-600"
+                        borderColor="border-violet-600"
                         tableTitle="All Tasks"
                         tableIcon="📄"
                         data={taskAll.data}
