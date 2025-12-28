@@ -9,6 +9,7 @@ export default function Task() {
     // Props
     const { props } = usePage();
     const {
+        taskAll = [],
         notStarted = [],
         inProgress = [],
         completed = [],
@@ -45,6 +46,25 @@ export default function Task() {
     })
 
     // Edit Task
+
+    // Task All
+    const {
+        data: editDataTaskAll,
+        setData: setEditDataTaskAll,
+        patch: postEditDataTaskAll,
+        processing: editProcessingTaskAll,
+        reset: resetEditDataTaskAll,
+        errors: editErrorsTaskAll
+    } = useForm({
+        task_name: '',
+        assignee: '',
+        division: '',
+        last_action: '',
+        status: '',
+        priority: '',
+        due_date: ''
+    })
+
     // Not Started
     const {
         data: editDataNotStarted,
@@ -129,6 +149,34 @@ export default function Task() {
 
             <MainContainer>
                 <div className="flex flex-col gap-8">
+                    <TaskTable
+                        borderColor="border-gray-600"
+                        tableTitle="All Tasks"
+                        tableIcon="📄"
+                        data={taskAll.data}
+                        employees_data={employees_data}
+                        divisions_data={divisions_data}
+                        paginationLinks={taskAll.links}
+                        paginationCurrentPage={taskAll.current_page}
+                        paginationPerPage={taskAll.per_page}
+                        paginationTotal={taskAll.total}
+                        paginationLastPage={taskAll.last_page}
+                        addData={addData}
+                        setDataAdd={setDataAdd}
+                        postAddData={postAddData}
+                        addProcessing={addProcessing}
+                        resetAddData={resetAddData}
+                        addErrors={addErrors}
+                        editData={editDataTaskAll}
+                        setEditData={setEditDataTaskAll}
+                        postEditData={postEditDataTaskAll}
+                        editProcessing={editProcessingTaskAll}
+                        resetEditData={resetEditDataTaskAll}
+                        editErrors={editErrorsTaskAll}
+                        deleteTask={deleteTask}
+                        tableType="task_all"
+                    />
+
                     <TaskTable
                         borderColor="border-gray-600"
                         tableTitle="Not Started"
