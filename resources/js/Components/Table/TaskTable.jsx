@@ -47,7 +47,8 @@ export default function TaskTable({
     editProcessing,
     resetEditData,
     editErrors,
-    deleteTask
+    deleteTask,
+    onRowClick
 }) {
 
     // Search/Pagination/Ordering/URL //
@@ -334,7 +335,11 @@ export default function TaskTable({
             }
 
             {data.map(task => (
-                <TableRow key={task.id}>
+                <TableRow
+                    key={task.id}
+                    onClick={isEditActive[task.id] ? undefined : () => onRowClick(task)}
+                    className="cursor-pointer"
+                >
                     {!isEditActive[task.id] && (
                         <>
                             <TableData>
@@ -460,7 +465,7 @@ export default function TaskTable({
 
                     <ActionData>
                         {!isEditActive[task.id] && (
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                                 <IconButton
                                     onClick={() => ToggleEdit(task)}
                                     isDisabled={editProcessing}

@@ -1,11 +1,22 @@
+import { useState, useEffect } from "react";
 import { Head, useForm, usePage, router } from "@inertiajs/react";
 import { toast } from 'sonner';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import MainContainer from "@/Components/DivContainer/MainContainer";
 import TaskTable from '@/Components/Table/TaskTable';
+import Sidebar from "@/Components/Sidebar";
 
 
 export default function Task() {
+    // Header Title
+    const HEADER_CONTENT = (
+        <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                Tasks
+            </h2>
+        </div>
+    )
+
     // Props
     const { props } = usePage();
     const {
@@ -18,14 +29,26 @@ export default function Task() {
     } = props;
 
 
-    // Header Title
-    const HEADER_CONTENT = (
-        <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Tasks
-            </h2>
-        </div>
-    )
+    // Sidebar
+    const [open, setOpen] = useState(false);
+    const [viewedTask, setViewedTask] = useState(null);
+
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
+
+        return () => {
+            document.body.style.overflow = 'auto';
+        }
+    }, [open]);
+
+    const handleRowClick = (task) => {
+        setOpen(true);
+        setViewedTask(task);
+    }
 
     // Add Task
     const {
@@ -148,6 +171,12 @@ export default function Task() {
             <Head title="Tasks" />
 
             <MainContainer>
+                <Sidebar
+                    open={open}
+                    task={viewedTask}
+                    onClose={() => setOpen(false)}
+                />
+
                 <div className="flex flex-col gap-8">
                     <TaskTable
                         borderColor="border-violet-600"
@@ -174,6 +203,7 @@ export default function Task() {
                         resetEditData={resetEditDataTaskAll}
                         editErrors={editErrorsTaskAll}
                         deleteTask={deleteTask}
+                        onRowClick={handleRowClick}
                         tableType="task_all"
                     />
 
@@ -202,6 +232,7 @@ export default function Task() {
                         resetEditData={resetEditDataNotStarted}
                         editErrors={editErrorsNotStarted}
                         deleteTask={deleteTask}
+                        onRowClick={handleRowClick}
                         tableType="not_started"
                     />
 
@@ -230,6 +261,7 @@ export default function Task() {
                         resetEditData={resetEditDataInProgress}
                         editErrors={editErrorsInProgress}
                         deleteTask={deleteTask}
+                        onRowClick={handleRowClick}
                         tableType="in_progress"
                     />
 
@@ -258,6 +290,7 @@ export default function Task() {
                         resetEditData={resetEditDataCompleted}
                         editErrors={editErrorsCompleted}
                         deleteTask={deleteTask}
+                        onRowClick={handleRowClick}
                         tableType="completed"
                     />
                 </div>
