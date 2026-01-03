@@ -45,6 +45,24 @@ export default function Task() {
         }
     }, [open]);
 
+    // Sync viewedTask with updated task data from props
+    useEffect(() => {
+        if (viewedTask?.id) {
+            // Find the updated task in any of the task arrays
+            const allTasks = [
+                ...taskAll.data,
+                ...notStarted.data,
+                ...inProgress.data,
+                ...completed.data,
+            ];
+            const updatedTask = allTasks.find(t => t.id === viewedTask.id);
+            if (updatedTask && JSON.stringify(updatedTask) !== JSON.stringify(viewedTask)) {
+                setViewedTask(updatedTask);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [taskAll.data, notStarted.data, inProgress.data, completed.data]);
+    
     const handleRowClick = (task) => {
         setOpen(true);
         setViewedTask(task);
