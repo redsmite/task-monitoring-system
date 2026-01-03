@@ -68,28 +68,28 @@ class TaskController extends Controller
             Task::with('division', 'employee')
                 ->orderBy('created_at', $taskAllSort),
             $taskAllSearch
-        )->paginate(7, ['*'], 'task_all_page', $taskAllPage);
+        )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
 
         $notStarted = $applySearch(
             Task::with('division', 'employee')
                 ->where('status', 'not_started')
                 ->orderBy('created_at', $notStartedSort),
             $notStartedSearch
-        )->paginate(7, ['*'], 'not_started_page', $notStartedPage);
+        )->paginate(15, ['*'], 'not_started_page', $notStartedPage);
 
         $inProgress = $applySearch(
             Task::with('division', 'employee')
                 ->where('status', 'in_progress')
                 ->orderBy('created_at', $inProgressSort),
             $inProgressSearch
-        )->paginate(7, ['*'], 'in_progress_page', $inProgressPage);
+        )->paginate(15, ['*'], 'in_progress_page', $inProgressPage);
 
         $completed = $applySearch(
             Task::with('division', 'employee')
                 ->where('status', 'completed')
                 ->orderBy('created_at', $completedSort),
             $completedSearch
-        )->paginate(7, ['*'], 'completed_page', $completedPage);
+        )->paginate(15, ['*'], 'completed_page', $completedPage);
 
         return Inertia::render('Task', [
             'divisions_data' => $divisions,
