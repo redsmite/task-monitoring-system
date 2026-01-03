@@ -258,7 +258,7 @@ class TaskController extends Controller
                 'user_id' => Auth::id(),
             ]);
 
-            return redirect()->route('task.index');
+            return back();
         }
 
         $validated = $request->validate([
