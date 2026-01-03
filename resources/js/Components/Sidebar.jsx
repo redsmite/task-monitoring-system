@@ -59,21 +59,21 @@ export default function Sidebar({ open, onClose, task }) {
                 </div>
 
                 <div className="p-4 space-y-6">
-                    <div className="">
-                        <div className="flex justify-end gap-4">
-                            <StatusContainer
-                                status={task?.status}
-                            >
-                                {task?.status}
-                            </StatusContainer>
-                            <PriorityContainer
-                                priority={task?.priority ? task?.priority : ''}
-                            >
-                                {task?.priority ? task?.priority : "No priority set."}
-                            </PriorityContainer>
-                        </div>
-                        <h1 className="text-3xl font-semibold">{task?.name}</h1>
+                    <div className="flex justify-end gap-4">
+                        <StatusContainer
+                            status={task?.status}
+                        >
+                            {task?.status}
+                        </StatusContainer>
+                        <PriorityContainer
+                            priority={task?.priority ? task?.priority : ''}
+                        >
+                            {task?.priority ? task?.priority : "No priority set."}
+                        </PriorityContainer>
                     </div>
+
+                    <h1 className="text-3xl font-semibold">{task?.name}</h1>
+
                     <div className="grid grid-cols-3 border border-gray-300 rounded overflow-hidden">
                         <div
                             onClick={() => ToggleDescriptionEdit(task)}
@@ -142,9 +142,9 @@ export default function Sidebar({ open, onClose, task }) {
                         </div>
                     </div>
 
-                    <div className="">
-                        <h1 className="text-lg font-semibold">Updates</h1>
-                        <p>{task?.last_action ? task?.last_action : "No last action set."}</p>
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-semibold">Last Action</h1>
+                        <p>{task?.last_action ? task?.last_action : "No last action."}</p>
                     </div>
                 </div>
             </div>
