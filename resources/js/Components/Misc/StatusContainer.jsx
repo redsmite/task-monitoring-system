@@ -2,15 +2,15 @@ export default function StatusContainer({ children, status }) {
 
     const statusColor = (status) => {
         if (status === "Not Started") {
-            return "bg-gray-400";
+            return "bg-slate-300 dark:bg-slate-700";
         }
 
         if (status === "In Progress") {
-            return "bg-orange-400"; 
+            return "bg-orange-200 dark:bg-amber-700"; 
         }
 
         if (status === "Completed") {
-            return "bg-green-400"
+            return "bg-emerald-200 dark:bg-emerald-700"
         }
 
         return "bg-blue-300";
