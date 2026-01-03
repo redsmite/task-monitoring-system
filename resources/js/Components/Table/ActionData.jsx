@@ -3,7 +3,7 @@ export default function ActionData({ children, colSpan, className = "" }) {
     const combinedClassName = className ? `${baseClassName} ${className}` : baseClassName;
     
     return (
-        <td className={combinedClassName} colSpan={colSpan}>
+        <td className={combinedClassName} colSpan={colSpan} onClick={(e) => e.stopPropagation()}>
             {children}
         </td>
     )

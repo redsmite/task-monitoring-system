@@ -671,7 +671,7 @@ export default function TaskTable({
 
                     <ActionData>
                         {!isEditActive[task.id] && (
-                            <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-3">
                                 <IconButton
                                     tooltip="Edit Task"
                                     onClick={() => ToggleEdit(task)}
