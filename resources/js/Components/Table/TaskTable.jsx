@@ -7,7 +7,6 @@ import Table from "./Table";
 import TableHeader from "./TableHeader";
 import TableRow from "./TableRow";
 import TableData from "./TableData";
-import Badge from "../Misc/Badge";
 import DivisionContainer from '../Misc/DivisionContainer';
 import Pagination from "../Misc/Pagination";
 import PrimaryInput from "../Form/PrimaryInput";
