@@ -232,14 +232,14 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         $validated = $request->validate([
-            'task_name' => 'required|string|max:255',
-            'assignee' => 'nullable|string|max:255',
-            'division' => 'nullable|string|max:255',
-            'last_action' => 'nullable|string|max:255',
-            'status' => 'nullable|string|max:255',
-            'priority' => 'nullable|string|max:255',
-            'due_date' => 'nullable|date',
-            'description' => 'nullable|string',
+            'task_name' => 'sometimes|required|string|max:255',
+            'assignee' => 'sometimes|nullable|string|max:255',
+            'division' => 'sometimes|nullable|string|max:255',
+            'last_action' => 'sometimes|nullable|string|max:255',
+            'status' => 'sometimes|nullable|string|max:255',
+            'priority' => 'sometimes|nullable|string|max:255',
+            'due_date' => 'sometimes|nullable|date',
+            'description' => 'sometimes|nullable|string',
         ]);
 
         $employeeId = !empty($validated['assignee'])
