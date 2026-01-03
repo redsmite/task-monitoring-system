@@ -231,7 +231,16 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        if ($request->has('description')) {
+        // Check if ONLY description is being updated (no other fields present)
+        $hasOtherFields = $request->has('task_name') || 
+                         $request->has('assignee') || 
+                         $request->has('division') || 
+                         $request->has('last_action') || 
+                         $request->has('status') || 
+                         $request->has('priority') || 
+                         $request->has('due_date');
+        
+        if ($request->has('description') && !$hasOtherFields) {
             $validated = $request->validate([
                 'description' => 'nullable|string',
             ]);
