@@ -20,7 +20,6 @@ export default function Sidebar({ open, onClose, task }) {
     const ToggleDescriptionEdit = (task) => {
         setEditDescriptionId(task.id);
         setDescriptionValue(task?.description || "");
-        console.table(task);
     }
 
     const saveDescription = (taskId) => {
@@ -86,15 +85,17 @@ export default function Sidebar({ open, onClose, task }) {
                                     onChange={(e) => setDescriptionValue(e.target.value)}
                                     className="w-full h-full text-sm border rounded p-2"
                                     onBlur={() => saveDescription(task?.id)}
+                                    onClick={(e) => e.stopPropagation()}
                                     autoFocus
+                                    maxLength={200}
                                 />
                             ) : (
-                                <p className="text-sm text-gray-600 dark:text-gray-300 font-semibold italic">
+                                <p className="text-sm text-gray-600 dark:text-gray-300 font-semibold italic max-w-full break-words">
                                     {descriptionValue ? descriptionValue : "No description."}
                                 </p>
                             )}
 
-                            {editDescriptionId === task?.id && (
+                            {editDescriptionId != task?.id && (
                                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition flex items-end justify-end p-2">
                                     <span className="text-xs text-gray-600 bg-white dark:text-white dark:bg-stone-800 px-2 py-1 rounded shadow">
                                         ✏️ Edit Description
