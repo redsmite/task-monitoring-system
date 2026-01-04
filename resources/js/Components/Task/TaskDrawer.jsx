@@ -215,13 +215,14 @@ export default function TaskDrawer({
                 }}
             >
                 {/* Header */}
-                <div className="sticky top-0 bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex justify-between items-center z-10">
-                    <h2 className="text-xl font-semibold">
+                <div className="sticky top-0 bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex justify-between items-center z-10 shadow-sm">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white pr-4">
                         {isAddModeActive ? 'Add New Task' : task?.name || 'Task Details'}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-2xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        className="text-2xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex-shrink-0"
+                        aria-label="Close drawer"
                     >
                         ✕
                     </button>
@@ -322,7 +323,7 @@ export default function TaskDrawer({
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <PrimaryButton
                                     text={isAddModeActive ? "Add Task" : "Save Changes"}
                                     onClick={isAddModeActive ? saveAdd : saveEdit}
@@ -340,7 +341,7 @@ export default function TaskDrawer({
                                             resetEditData();
                                         }
                                     }}
-                                    className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm py-2 px-4 rounded cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300"
+                                    className="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm py-2 px-4 rounded cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300"
                                 >
                                     Cancel
                                 </button>
@@ -349,8 +350,8 @@ export default function TaskDrawer({
                     ) : (
                         /* View Mode */
                         <>
-                            {/* Status and Priority */}
-                            <div className="flex flex-wrap gap-4 justify-end">
+                            {/* Status and Priority - Top Right */}
+                            <div className="flex flex-wrap gap-3 justify-end mb-4">
                                 <StatusContainer status={task?.status}>
                                     {task?.status}
                                 </StatusContainer>
@@ -360,50 +361,50 @@ export default function TaskDrawer({
                             </div>
 
                             {/* Description */}
-                            <div className="space-y-2">
-                                <h3 className="text-lg font-semibold">Description</h3>
-                                <p className="text-gray-700 dark:text-gray-300">
+                            <div className="space-y-2 mb-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Description</h3>
+                                <p className="text-gray-700 dark:text-gray-300 text-sm">
                                     {task?.description || "No description."}
                                 </p>
                             </div>
 
-                            {/* Details Grid */}
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg">
-                                    <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">📅 Due Date</h4>
+                            {/* Details Grid - 2 columns on larger screens, 1 on mobile */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                                <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
+                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-4">📅 Due Date</h4>
                                     <DateContainer bgcolor="bg-red-100">
                                         {task?.due_date ? task.due_date : "No due date set."}
                                     </DateContainer>
                                 </div>
 
-                                <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg">
-                                    <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">👤 Assigned To</h4>
-                                    <p className="text-violet-500 font-semibold">
+                                <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
+                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">👤 Assigned To</h4>
+                                    <p className="text-violet-500 dark:text-violet-400 font-semibold text-sm">
                                         {task?.employee ? `${task.employee.first_name} ${task.employee.last_name}` : "Not assigned"}
                                     </p>
                                 </div>
 
-                                <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg">
-                                    <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">🔰 Division</h4>
+                                <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
+                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-4">🔰 Division</h4>
                                     {task?.division ? (
                                         <DivisionContainer bgcolor={task.division.division_color}>
                                             {task.division.division_name}
                                         </DivisionContainer>
                                     ) : (
-                                        <p className="text-gray-600 dark:text-gray-400">No division assigned</p>
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm">No division assigned</p>
                                     )}
                                 </div>
 
-                                <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg">
-                                    <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Last Action</h4>
-                                    <p className="text-gray-700 dark:text-gray-300">
+                                <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
+                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Last Action</h4>
+                                    <p className="text-gray-700 dark:text-gray-300 text-sm">
                                         {task?.last_action || "No last action."}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <PrimaryButton
                                     text="Edit Task"
                                     onClick={() => setIsEditMode(true)}
@@ -411,7 +412,7 @@ export default function TaskDrawer({
                                 {task && (
                                     <button
                                         onClick={handleDelete}
-                                        className="flex-1 bg-red-600 text-white text-sm py-2 px-4 rounded cursor-pointer hover:bg-red-700 transition duration-300"
+                                        className="flex-1 bg-red-600 text-white text-sm py-2.5 px-4 rounded cursor-pointer hover:bg-red-700 transition duration-300 font-medium"
                                     >
                                         Delete Task
                                     </button>
