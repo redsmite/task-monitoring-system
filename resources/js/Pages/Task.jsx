@@ -71,10 +71,7 @@ export default function Task() {
     const handleTaskClick = (task) => {
         setViewedTask(task);
         setIsAddMode(false);
-        // Use drawer for mobile, sidebar for desktop
-        // We'll detect screen size or use CSS to show/hide
-        // Open both - CSS will show/hide appropriately
-        setDrawerOpen(true);
+        setDrawerOpen(true); // Use drawer for mobile, sidebar for desktop
         setSidebarOpen(true);
     }
 
