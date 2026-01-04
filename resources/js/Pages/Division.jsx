@@ -10,12 +10,32 @@ import PrimaryInput from '@/Components/Form/PrimaryInput';
 import SelectInput from '@/Components/Form/SelectInput';
 import PrimaryButton from '@/Components/PrimaryButton';
 import DivisionContainer from '@/Components/Misc/DivisionContainer';
+import DivisionList from '@/Components/Division/DivisionList';
+import DivisionDrawer from '@/Components/Division/DivisionDrawer';
 import { SelectItem } from "@/components/ui/select";
 import { Head, useForm, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 
 export default function Division({ divisions = [] }) {
     const [editingId, setEditingId] = useState(null);
+    
+    // Drawer state (Mobile/Tablet)
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [viewedDivision, setViewedDivision] = useState(null);
+    const [isAddMode, setIsAddMode] = useState(false);
+
+    // Prevent body scroll when drawer is open
+    useEffect(() => {
+        if (drawerOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [drawerOpen]);
 
     // Sorting and Search
     const queryString = window.location.search;
@@ -76,7 +96,7 @@ export default function Division({ divisions = [] }) {
         });
     }, [sortValue, searchValue]);
 
-    // Add/Edit Form
+    // Add/Edit Form (Desktop)
     const {
         data,
         setData,
@@ -86,6 +106,31 @@ export default function Division({ divisions = [] }) {
         reset,
         errors,
         clearErrors
+    } = useForm({
+        division_name: '',
+        division_color: '#FF6B6B',
+    });
+
+    // Add/Edit Form (Mobile Drawer)
+    const {
+        data: addData,
+        setData: setDataAdd,
+        post: postAddData,
+        processing: addProcessing,
+        reset: resetAddData,
+        errors: addErrors
+    } = useForm({
+        division_name: '',
+        division_color: '#FF6B6B',
+    });
+
+    const {
+        data: editData,
+        setData: setEditData,
+        patch: patchEditData,
+        processing: editProcessing,
+        reset: resetEditData,
+        errors: editErrors
     } = useForm({
         division_name: '',
         division_color: '#FF6B6B',
@@ -147,6 +192,10 @@ export default function Division({ divisions = [] }) {
             onSuccess: () => {
                 toast.dismiss();
                 toast.success("Division deleted!");
+                if (drawerOpen) {
+                    setDrawerOpen(false);
+                    setViewedDivision(null);
+                }
             },
             onError: (errors) => {
                 const messages = Object.values(errors).flat().join(" ");
@@ -156,6 +205,28 @@ export default function Division({ divisions = [] }) {
         });
     };
 
+    // Mobile handlers
+    const handleDivisionClick = (division) => {
+        setViewedDivision(division);
+        setIsAddMode(false);
+        setDrawerOpen(true);
+    };
+
+    const handleAddClick = () => {
+        setViewedDivision(null);
+        setIsAddMode(true);
+        setDrawerOpen(true);
+        resetAddData();
+    };
+
+    const handleDrawerClose = () => {
+        setDrawerOpen(false);
+        setIsAddMode(false);
+        setViewedDivision(null);
+        resetAddData();
+        resetEditData();
+    };
+
     return (
         <AuthenticatedLayout
             header="Division List"
@@ -163,9 +234,32 @@ export default function Division({ divisions = [] }) {
             <Head title="Division" />
 
             <MainContainer>
+                {/* Division Drawer - Mobile/Tablet Only */}
+                <div className="md:hidden">
+                    <DivisionDrawer
+                        open={drawerOpen}
+                        onClose={handleDrawerClose}
+                        division={viewedDivision}
+                        editData={editData}
+                        setEditData={setEditData}
+                        postEditData={patchEditData}
+                        editProcessing={editProcessing}
+                        resetEditData={resetEditData}
+                        editErrors={editErrors}
+                        deleteDivision={handleDelete}
+                        isAddMode={isAddMode}
+                        addData={addData}
+                        setDataAdd={setDataAdd}
+                        postAddData={postAddData}
+                        addProcessing={addProcessing}
+                        resetAddData={resetAddData}
+                        addErrors={addErrors}
+                    />
+                </div>
+
                 <div className="space-y-8">
-                    {/* Add/Edit Form */}
-                    <div className={`bg-white rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 ${editingId ? 'dark:bg-amber-900' : 'dark:bg-emerald-900'}`}>
+                    {/* Add/Edit Form - Desktop Only */}
+                    <div className={`hidden md:block bg-white rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 ${editingId ? 'dark:bg-amber-900' : 'dark:bg-emerald-900'}`}>
                         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                             {editingId ? 'Edit Division' : 'Add Division'}
                         </h2>
@@ -227,8 +321,22 @@ export default function Division({ divisions = [] }) {
                         </form>
                     </div>
 
-                    {/* Division List */}
-                    <TableContainer
+                    {/* Division List - Mobile/Tablet Only */}
+                    <div className="md:hidden">
+                        <DivisionList
+                            borderColor="border-purple-500"
+                            title="Divisions"
+                            icon="🏢"
+                            data={divisions}
+                            onDivisionClick={handleDivisionClick}
+                            onAddClick={handleAddClick}
+                            showAddButton={true}
+                        />
+                    </div>
+
+                    {/* Division Table - Desktop Only */}
+                    <div className="hidden md:block">
+                        <TableContainer
                         tableIcon="🏢"
                         tableTitle="Divisions"
                         borderColor="border-purple-500"
@@ -318,6 +426,7 @@ export default function Division({ divisions = [] }) {
                             }
                         />
                     </TableContainer>
+                    </div>
                 </div>
             </MainContainer>
         </AuthenticatedLayout>
