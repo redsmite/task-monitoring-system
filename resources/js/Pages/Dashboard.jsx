@@ -49,7 +49,7 @@ export default function Dashboard({ task_counts = {}, recent_tasks = [], tasks_b
 
     const DivisionCard = ({ division }) => {
         return (
-            <div className="mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-5">
+            <div className="mb-4 bg-white dark:bg-zinc-900 shadow-lg p-5">
                 <div className="space-y-4">
                     <div>
                         <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Division:</span>
@@ -168,7 +168,7 @@ export default function Dashboard({ task_counts = {}, recent_tasks = [], tasks_b
                         <div className="space-y-4">
                             <h1 className="text-3xl font-semibold">🚩 Task by Division</h1>
                             {sortedChartData.length > 0 && totalTasks > 0 ? (
-                                <Card className="flex flex-col bg-white dark:bg-zinc-900 border-gray-200 dark:border-gray-700">
+                                <Card className="flex flex-col bg-white dark:bg-zinc-900 border-gray-200 dark:border-stone-900">
                                     <CardContent className="flex-1">
                                         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                                             <div className="w-full md:w-1/2 lg:w-2/5 min-w-0">
@@ -262,7 +262,7 @@ export default function Dashboard({ task_counts = {}, recent_tasks = [], tasks_b
                         </div>
 
                         <TableContainer
-                            borderColor="border-purple-500"
+                            borderColor="border-purple-500 hidden md:block"
                         >
                             {/* Desktop Table View */}
                             <div className="hidden md:block">
@@ -329,86 +329,86 @@ export default function Dashboard({ task_counts = {}, recent_tasks = [], tasks_b
                                     }
                                 />
                             </div>
-
-                            {/* Mobile Card View */}
-                            <div className="block md:hidden">
-                                {tasks_by_division.length > 0 ? (
-                                    tasks_by_division.map(division => (
-                                        <DivisionCard key={division.id} division={division} />
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                        No task by division
-                                    </div>
-                                )}
-                            </div>
                         </TableContainer>
+
+                        {/* Mobile Card View */}
+                        <div className="block md:hidden">
+                            {tasks_by_division.length > 0 ? (
+                                tasks_by_division.map(division => (
+                                    <DivisionCard key={division.id} division={division} />
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                    No task by division
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <div className="flex items-center space-x-4">
-                            <h1 className="text-3xl">🧐</h1>
-                            <h1 className="text-3xl font-semibold">Recent Tasks</h1>
+                    <div className="space-y-4 md:space-y-6">
+                        <div className="flex items-center space-x-3 md:space-x-4">
+                            <h1 className="text-2xl md:text-3xl">🧐</h1>
+                            <h1 className="text-2xl md:text-3xl font-semibold">Recent Tasks</h1>
                         </div>
                         {recent_tasks.length > 0 ? (
                             recent_tasks.map(task => (
-                                <div key={task.id} className="bg-white p-4 border border-gray-300 rounded-lg shadow-lg dark:bg-zinc-900 dark:border-stone-800">
-                                    <div className="flex items-center space-x-4">
-                                        <div className="px-4 py-4 bg-green-200 rounded-md text-green-800">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                <div key={task.id} className="bg-white p-3 md:p-4 border border-gray-300 sm:rounded-lg shadow-lg dark:bg-zinc-900 dark:border-stone-800">
+                                    <div className="flex items-start space-x-3 md:space-x-4">
+                                        <div className="px-3 py-3 md:px-4 md:py-4 bg-green-200 rounded-md text-green-800 shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                                             </svg>
                                         </div>
-                                        <div className="w-full space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex space-x-1">
-                                                    <p className="text-sm font-semibold">Task Created at</p>
-                                                    <p className="text-sm font-semibold">{task?.created_at}</p>
+                                        <div className="w-full min-w-0 space-y-2 md:space-y-3">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                                                <div className="flex flex-wrap items-center gap-1 text-xs md:text-sm">
+                                                    <p className="font-semibold text-gray-600 dark:text-gray-400">Task Created at</p>
+                                                    <p className="font-semibold text-gray-900 dark:text-white">{task?.created_at}</p>
                                                 </div>
-                                                <div className="flex space-x-4">
-                                                    <div className="px-4 py-1 rounded" style={{ backgroundColor: task.division?.division_color || '#gray' }}>
-                                                        <p className="text-sm">{task.division?.division_name}</p>
+                                                <div className="flex flex-wrap items-center gap-2 sm:gap-2">
+                                                    <div className="px-2 py-1 md:px-3 md:py-1 rounded text-xs md:text-sm whitespace-nowrap" style={{ backgroundColor: task.division?.division_color || '#gray' }}>
+                                                        <p className="text-white font-medium">{task.division?.division_name}</p>
                                                     </div>
-                                                    <div className={`flex items-center px-4 rounded-full
+                                                    <div className={`flex items-center px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm whitespace-nowrap
                                                             ${task?.status === "Completed" && "bg-green-300 dark:bg-green-800"}
                                                             ${task?.status === "In Progress" && "bg-orange-300 dark:bg-orange-600"}
                                                             ${task?.status === "Not Started" && "bg-gray-300 dark:bg-gray-800"}
                                                         `}>
-                                                        <p className="text-sm">{task?.status}</p>
+                                                        <p className="font-medium">{task?.status}</p>
                                                     </div>
                                                     {task?.due_date && (
-                                                        <div className="px-4 bg-red-200 text-red-600 font-semibold flex items-center rounded-full">
-                                                            <p className="text-sm">{task?.due_date}</p>
+                                                        <div className="px-2 py-1 md:px-3 md:py-1 bg-red-200 text-red-600 dark:bg-red-800 dark:text-red-200 font-semibold flex items-center rounded-full text-xs md:text-sm whitespace-nowrap">
+                                                            <p>{task?.due_date}</p>
                                                         </div>
                                                     )}
                                                     {task?.priority && (
-                                                        <div className={`px-4 flex items-center rounded
+                                                        <div className={`px-2 py-1 md:px-3 md:py-1 flex items-center rounded text-xs md:text-sm whitespace-nowrap
                                                             ${task?.priority === "Low" && "bg-green-300 dark:bg-green-800"}
                                                             ${task?.priority === "Medium" && "bg-orange-300 dark:bg-orange-600"}
                                                             ${task?.priority === "High" && "bg-red-300 dark:bg-red-700"}
                                                         `}>
-                                                            <p className="text-sm">{task?.priority}</p>
+                                                            <p className="font-medium">{task?.priority}</p>
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="">
-                                                <p className="text-2xl">{task?.name}</p>
+                                            <div className="pt-1">
+                                                <p className="text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-white break-words">{task?.name}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="bg-white p-4 border border-gray-300 rounded-lg shadow-lg dark:bg-black dark:border-stone-800">
-                                <div className="flex items-center space-x-4">
-                                    <div className="px-4 py-4 bg-blue-200 rounded-md text-blue-800">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                            <div className="bg-white p-4 md:p-6 border border-gray-300 rounded-lg shadow-lg dark:bg-black dark:border-stone-800">
+                                <div className="flex items-center space-x-3 md:space-x-4">
+                                    <div className="px-3 py-3 md:px-4 md:py-4 bg-blue-200 rounded-md text-blue-800 shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                                         </svg>
                                     </div>
-                                    <div className="pr-10 w-full flex justify-center">
-                                        <h1 className="text-2xl font-semibold">No new tasks have been created at this time</h1>
+                                    <div className="w-full">
+                                        <h1 className="text-lg md:text-xl lg:text-2xl font-semibold text-center md:text-left">No new tasks have been created at this time</h1>
                                     </div>
                                 </div>
                             </div>
