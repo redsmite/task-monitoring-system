@@ -609,7 +609,7 @@ export default function TaskTable({
                                 >
                                     {employees_data.map((employee) => (
                                         <SelectItem key={employee.id} value={String(employee.id)}>
-                                            {employee.last_name} {employee.first_name}
+                                            {employee.first_name} {employee.last_name}
                                         </SelectItem>
                                     ))}
 
