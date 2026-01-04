@@ -10,12 +10,32 @@ import PrimaryInput from '@/Components/Form/PrimaryInput';
 import SelectInput from '@/Components/Form/SelectInput';
 import PrimaryButton from '@/Components/PrimaryButton';
 import DivisionContainer from '@/Components/Misc/DivisionContainer';
+import AssigneeList from '@/Components/Assignee/AssigneeList';
+import AssigneeDrawer from '@/Components/Assignee/AssigneeDrawer';
 import { SelectItem } from "@/components/ui/select";
 import { Head, useForm, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 
 export default function Assignee({ employees = [], divisions = [] }) {
     const [editingId, setEditingId] = useState(null);
+    
+    // Drawer state (Mobile/Tablet)
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [viewedAssignee, setViewedAssignee] = useState(null);
+    const [isAddMode, setIsAddMode] = useState(false);
+
+    // Prevent body scroll when drawer is open
+    useEffect(() => {
+        if (drawerOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [drawerOpen]);
 
     // Sorting and Search
     const queryString = window.location.search;
@@ -76,7 +96,7 @@ export default function Assignee({ employees = [], divisions = [] }) {
         });
     }, [sortValue, searchValue]);
 
-    // Add/Edit Form
+    // Add/Edit Form (Desktop)
     const {
         data,
         setData,
@@ -86,6 +106,35 @@ export default function Assignee({ employees = [], divisions = [] }) {
         reset,
         errors,
         clearErrors
+    } = useForm({
+        first_name: '',
+        last_name: '',
+        position: '',
+        division_id: '',
+    });
+
+    // Add/Edit Form (Mobile Drawer)
+    const {
+        data: addData,
+        setData: setDataAdd,
+        post: postAddData,
+        processing: addProcessing,
+        reset: resetAddData,
+        errors: addErrors
+    } = useForm({
+        first_name: '',
+        last_name: '',
+        position: '',
+        division_id: '',
+    });
+
+    const {
+        data: editData,
+        setData: setEditData,
+        patch: patchEditData,
+        processing: editProcessing,
+        reset: resetEditData,
+        errors: editErrors
     } = useForm({
         first_name: '',
         last_name: '',
@@ -151,6 +200,10 @@ export default function Assignee({ employees = [], divisions = [] }) {
             onSuccess: () => {
                 toast.dismiss();
                 toast.success("Employee deleted!");
+                if (drawerOpen) {
+                    setDrawerOpen(false);
+                    setViewedAssignee(null);
+                }
             },
             onError: (errors) => {
                 const messages = Object.values(errors).flat().join(" ");
@@ -160,6 +213,28 @@ export default function Assignee({ employees = [], divisions = [] }) {
         });
     };
 
+    // Mobile handlers
+    const handleAssigneeClick = (assignee) => {
+        setViewedAssignee(assignee);
+        setIsAddMode(false);
+        setDrawerOpen(true);
+    };
+
+    const handleAddClick = () => {
+        setViewedAssignee(null);
+        setIsAddMode(true);
+        setDrawerOpen(true);
+        resetAddData();
+    };
+
+    const handleDrawerClose = () => {
+        setDrawerOpen(false);
+        setIsAddMode(false);
+        setViewedAssignee(null);
+        resetAddData();
+        resetEditData();
+    };
+
     return (
         <AuthenticatedLayout
             header="Assignee List"
@@ -167,9 +242,33 @@ export default function Assignee({ employees = [], divisions = [] }) {
             <Head title="Assignee" />
 
             <MainContainer>
+                {/* Assignee Drawer - Mobile/Tablet Only */}
+                <div className="md:hidden">
+                    <AssigneeDrawer
+                        open={drawerOpen}
+                        onClose={handleDrawerClose}
+                        assignee={viewedAssignee}
+                        divisions_data={divisions}
+                        editData={editData}
+                        setEditData={setEditData}
+                        postEditData={patchEditData}
+                        editProcessing={editProcessing}
+                        resetEditData={resetEditData}
+                        editErrors={editErrors}
+                        deleteAssignee={handleDelete}
+                        isAddMode={isAddMode}
+                        addData={addData}
+                        setDataAdd={setDataAdd}
+                        postAddData={postAddData}
+                        addProcessing={addProcessing}
+                        resetAddData={resetAddData}
+                        addErrors={addErrors}
+                    />
+                </div>
+
                 <div className="space-y-8">
-                    {/* Add/Edit Form */}
-                    <div className={`bg-white rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 ${editingId ? 'dark:bg-amber-900' : 'dark:bg-emerald-900'}`}>
+                    {/* Add/Edit Form - Desktop Only */}
+                    <div className={`hidden md:block bg-white rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 ${editingId ? 'dark:bg-amber-900' : 'dark:bg-emerald-900'}`}>
                         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                             {editingId ? 'Edit Assignee' : 'Add Assignee'}
                         </h2>
@@ -251,8 +350,22 @@ export default function Assignee({ employees = [], divisions = [] }) {
                         </form>
                     </div>
 
-                    {/* Employee List */}
-                    <TableContainer
+                    {/* Assignee List - Mobile/Tablet Only */}
+                    <div className="md:hidden">
+                        <AssigneeList
+                            borderColor="border-blue-500"
+                            title="Assignees"
+                            icon="👥"
+                            data={employees}
+                            onAssigneeClick={handleAssigneeClick}
+                            onAddClick={handleAddClick}
+                            showAddButton={true}
+                        />
+                    </div>
+
+                    {/* Employee Table - Desktop Only */}
+                    <div className="hidden md:block">
+                        <TableContainer
                         tableIcon="👥"
                         tableTitle="Assignees"
                         borderColor="border-blue-500"
@@ -342,6 +455,7 @@ export default function Assignee({ employees = [], divisions = [] }) {
                             }
                         />
                     </TableContainer>
+                    </div>
                 </div>
             </MainContainer>
         </AuthenticatedLayout>
