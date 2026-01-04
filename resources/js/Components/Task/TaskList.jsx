@@ -1,6 +1,7 @@
 import PriorityContainer from '../Misc/PriorityContainer';
 import StatusContainer from '../Misc/StatusContainer';
 import PrimaryButton from '../Button/PrimaryButton';
+import Pagination from '../Misc/Pagination';
 
 export default function TaskList({
     title,
@@ -9,7 +10,13 @@ export default function TaskList({
     data = [],
     onTaskClick,
     onAddClick,
-    showAddButton = true
+    showAddButton = true,
+    paginationLinks = [],
+    paginationCurrentPage,
+    paginationPerPage,
+    paginationTotal,
+    paginationLastPage,
+    tableType = ''
 }) {
     return (
         <div className="rounded-lg p-4 space-y-3">
@@ -66,6 +73,20 @@ export default function TaskList({
                     ))
                 )}
             </div>
+
+            {/* Pagination */}
+            {paginationLinks && paginationLinks.length > 0 && (
+                <div className="mt-4">
+                    <Pagination
+                        links={paginationLinks}
+                        current_page={paginationCurrentPage}
+                        per_page={paginationPerPage}
+                        total={paginationTotal}
+                        last_page={paginationLastPage}
+                        tableType={tableType}
+                    />
+                </div>
+            )}
         </div>
     );
 }

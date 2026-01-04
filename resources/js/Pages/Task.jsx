@@ -267,6 +267,12 @@ export default function Task() {
                         onTaskClick={handleTaskClick}
                         onAddClick={() => handleAddClick('task_all')}
                         showAddButton={true}
+                        paginationLinks={taskAll.links}
+                        paginationCurrentPage={taskAll.current_page}
+                        paginationPerPage={taskAll.per_page}
+                        paginationTotal={taskAll.total}
+                        paginationLastPage={taskAll.last_page}
+                        tableType="task_all"
                     />
 
                     <TaskList
@@ -277,6 +283,12 @@ export default function Task() {
                         onTaskClick={handleTaskClick}
                         onAddClick={() => handleAddClick('not_started')}
                         showAddButton={true}
+                        paginationLinks={notStarted.links}
+                        paginationCurrentPage={notStarted.current_page}
+                        paginationPerPage={notStarted.per_page}
+                        paginationTotal={notStarted.total}
+                        paginationLastPage={notStarted.last_page}
+                        tableType="not_started"
                     />
 
                     <TaskList
@@ -287,6 +299,12 @@ export default function Task() {
                         onTaskClick={handleTaskClick}
                         onAddClick={() => handleAddClick('in_progress')}
                         showAddButton={true}
+                        paginationLinks={inProgress.links}
+                        paginationCurrentPage={inProgress.current_page}
+                        paginationPerPage={inProgress.per_page}
+                        paginationTotal={inProgress.total}
+                        paginationLastPage={inProgress.last_page}
+                        tableType="in_progress"
                     />
 
                     <TaskList
@@ -297,6 +315,12 @@ export default function Task() {
                         onTaskClick={handleTaskClick}
                         onAddClick={() => handleAddClick('completed')}
                         showAddButton={true}
+                        paginationLinks={completed.links}
+                        paginationCurrentPage={completed.current_page}
+                        paginationPerPage={completed.per_page}
+                        paginationTotal={completed.total}
+                        paginationLastPage={completed.last_page}
+                        tableType="completed"
                     />
                 </div>
 
