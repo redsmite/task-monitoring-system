@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import MainContainer from '@/Components/DivContainer/MainContainer';
 import TableContainer from '@/Components/DivContainer/TableContainer';
@@ -16,6 +16,55 @@ import { toast } from 'sonner';
 
 export default function Assignee({ employees = [], divisions = [] }) {
     const [editingId, setEditingId] = useState(null);
+
+    // Sorting
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    let sort = urlParams.get('sort') || 'asc';
+    
+    // Clean Sort Value
+    if (sort !== 'asc' && sort !== 'desc') {
+        sort = 'asc';
+    }
+    
+    const [sortValue, setSortValue] = useState(sort);
+    const isInitialMount = useRef(true);
+
+    // Update URL when sort changes
+    useEffect(() => {
+        const currentUrlParams = new URLSearchParams(window.location.search);
+        
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            // On initial mount, only update URL if sort parameter is missing
+            if (!currentUrlParams.has('sort')) {
+                const currentParams = Object.fromEntries(currentUrlParams);
+                const searchUrl = {
+                    ...currentParams,
+                    sort: sortValue,
+                };
+                router.get(route('assignee.index'), searchUrl, {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true
+                });
+            }
+            return;
+        }
+
+        // On subsequent changes, update URL
+        const currentParams = Object.fromEntries(currentUrlParams);
+        const searchUrl = {
+            ...currentParams,
+            sort: sortValue,
+        };
+
+        router.get(route('assignee.index'), searchUrl, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true
+        });
+    }, [sortValue]);
 
     // Add/Edit Form
     const {
@@ -180,6 +229,18 @@ export default function Assignee({ employees = [], divisions = [] }) {
                         tableIcon="👥"
                         tableTitle="Employees"
                         borderColor="border-blue-500"
+                        headerContent={
+                            <div className="mb-4">
+                                <SelectInput
+                                    placeholder="Sort Order"
+                                    value={sortValue}
+                                    onChange={(value) => setSortValue(value)}
+                                >
+                                    <SelectItem value="asc">Ascending</SelectItem>
+                                    <SelectItem value="desc">Descending</SelectItem>
+                                </SelectInput>
+                            </div>
+                        }
                     >
                         <Table
                             thead={

@@ -13,9 +13,16 @@ class EmployeeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $employees = Employee::with('division')->orderBy('last_name', 'asc')->get();
+        $sort = $request->get('sort', 'asc');
+        
+        // Validate sort order
+        if ($sort !== 'asc' && $sort !== 'desc') {
+            $sort = 'asc';
+        }
+
+        $employees = Employee::with('division')->orderBy('last_name', $sort)->get();
         $divisions = Division::orderBy('division_name', 'asc')->get();
 
         return Inertia::render('Assignee', [
