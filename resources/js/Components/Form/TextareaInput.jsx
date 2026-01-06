@@ -1,4 +1,4 @@
-import { Textarea } from "@/components/ui/textarea"
+import { Textarea } from "@/Components/ui/textarea"
 import Label from "@/Components/Form/Label"
 
 export default function TextareaInput({ label, ...props }) {

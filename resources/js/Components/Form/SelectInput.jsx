@@ -5,7 +5,7 @@ import {
     SelectContent,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/Components/ui/select"
 
 export default function SelectInput({ label, placeholder, children, value, defaultValue, onChange, error }) {
     const selectProps = {}
