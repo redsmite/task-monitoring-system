@@ -75,35 +75,6 @@ export default function Sidebar({ open, onClose, task }) {
                     <h1 className="text-3xl font-semibold">{task?.name}</h1>
 
                     <div className="grid grid-cols-3 border border-gray-300 rounded overflow-hidden">
-                        <div
-                            onClick={() => ToggleDescriptionEdit(task)}
-                            className="group relative min-h-48 col-span-3 p-3 border-b border-gray-300 hover:bg-stone-200 dark:hover:bg-stone-700 cursor-pointer"
-                        >
-                            {editDescriptionId === task?.id ? (
-                                <textarea
-                                    value={descriptionValue}
-                                    onChange={(e) => setDescriptionValue(e.target.value)}
-                                    className="w-full h-full text-sm border rounded p-2"
-                                    onBlur={() => saveDescription(task?.id)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    autoFocus
-                                    maxLength={200}
-                                />
-                            ) : (
-                                <p className="text-sm text-gray-600 dark:text-gray-300 font-semibold italic max-w-full break-words">
-                                    {descriptionValue ? descriptionValue : "No description."}
-                                </p>
-                            )}
-
-                            {editDescriptionId != task?.id && (
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition flex items-end justify-end p-2">
-                                    <span className="text-xs text-gray-600 bg-white dark:text-white dark:bg-zinc-800 px-2 py-1 rounded shadow">
-                                        ✏️ Edit Description
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-
                         <div className="min-h-44 p-3 flex flex-col border-r border-gray-300">
                             <div className="flex justify-center">
                                 <h1 className="text-md font-semibold">📅Due Date</h1>
@@ -140,11 +111,40 @@ export default function Sidebar({ open, onClose, task }) {
                                 </div>
                             </div>
                         </div>
+
+                        <div
+                            onClick={() => ToggleDescriptionEdit(task)}
+                            className="group relative min-h-48 col-span-3 p-3 border-t border-gray-300 hover:bg-stone-200 dark:hover:bg-stone-700 cursor-pointer"
+                        >
+                            {editDescriptionId === task?.id ? (
+                                <textarea
+                                    value={descriptionValue}
+                                    onChange={(e) => setDescriptionValue(e.target.value)}
+                                    className="w-full h-full text-sm border rounded p-2"
+                                    onBlur={() => saveDescription(task?.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    autoFocus
+                                    maxLength={200}
+                                />
+                            ) : (
+                                <p className="text-sm text-gray-600 dark:text-gray-300 font-semibold italic max-w-full break-words">
+                                    {descriptionValue ? descriptionValue : "Add a short description or note."}
+                                </p>
+                            )}
+
+                            {editDescriptionId != task?.id && (
+                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition flex items-end justify-end p-2">
+                                    <span className="text-xs text-gray-600 bg-white dark:text-white dark:bg-zinc-800 px-2 py-1 rounded shadow">
+                                        ✏️ Edit Description
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="space-y-2">
                         <h1 className="text-3xl font-semibold">Last Action</h1>
-                        <p>{task?.last_action ? task?.last_action : "No last action."}</p>
+                        <p>{task?.last_action ? task?.last_action : "Add a short update on this task."}</p>
                     </div>
                 </div>
             </div>
