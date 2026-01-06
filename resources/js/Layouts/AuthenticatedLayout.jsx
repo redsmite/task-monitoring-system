@@ -21,7 +21,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="flex h-16 justify-between">
                             <div className="flex">
                                 <div className="flex shrink-0 items-center">
-                                    <img src="assets/logo.png" alt="Logo" className="w-10 h-10" />
+                                    <img src="/assets/logo.png" alt="Logo" className="w-10 h-10" />
                                 </div>
 
                                 <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
