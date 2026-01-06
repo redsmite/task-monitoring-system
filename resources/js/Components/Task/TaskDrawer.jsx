@@ -99,8 +99,8 @@ export default function TaskDrawer({
         }
     }
 
-    // Initialize edit data when task changes
-    useEffect(() => {
+    // Helper function to initialize edit data from task
+    const initializeEditData = () => {
         if (task && !isAddModeActive) {
             // Parse due_date from "m/d/Y" format to Date object
             let parsedDueDate = '';
@@ -128,8 +128,21 @@ export default function TaskDrawer({
                 description: task.description || '',
             });
         }
+    }
+
+    // Initialize edit data when task changes
+    useEffect(() => {
+        initializeEditData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [task, isAddModeActive]);
+
+    // Re-initialize edit data when entering edit mode
+    useEffect(() => {
+        if (isEditMode && !isAddModeActive && task) {
+            initializeEditData();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode]);
 
     // Initialize add data
     useEffect(() => {
