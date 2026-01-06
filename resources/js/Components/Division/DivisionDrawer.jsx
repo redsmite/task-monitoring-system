@@ -57,15 +57,29 @@ export default function DivisionDrawer({
         }
     }
 
-    // Initialize edit data when division changes
-    useEffect(() => {
+    // Helper function to initialize edit data from division
+    const initializeEditData = () => {
         if (division && !isAddModeActive) {
             setEditData({
                 division_name: division.division_name || '',
                 division_color: division.division_color || '#FF6B6B',
             });
         }
+    }
+
+    // Initialize edit data when division changes
+    useEffect(() => {
+        initializeEditData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [division, isAddModeActive]);
+
+    // Re-initialize edit data when entering edit mode
+    useEffect(() => {
+        if (isEditMode && !isAddModeActive && division) {
+            initializeEditData();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode]);
 
     // Save Edit
     const saveEdit = () => {

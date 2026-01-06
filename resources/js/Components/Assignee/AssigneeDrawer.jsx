@@ -60,8 +60,8 @@ export default function AssigneeDrawer({
         }
     }
 
-    // Initialize edit data when assignee changes
-    useEffect(() => {
+    // Helper function to initialize edit data from assignee
+    const initializeEditData = () => {
         if (assignee && !isAddModeActive) {
             setEditData({
                 first_name: assignee.first_name || '',
@@ -70,7 +70,21 @@ export default function AssigneeDrawer({
                 division_id: assignee.division_id ? String(assignee.division_id) : '',
             });
         }
+    }
+
+    // Initialize edit data when assignee changes
+    useEffect(() => {
+        initializeEditData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [assignee, isAddModeActive]);
+
+    // Re-initialize edit data when entering edit mode
+    useEffect(() => {
+        if (isEditMode && !isAddModeActive && assignee) {
+            initializeEditData();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode]);
 
     // Save Edit
     const saveEdit = () => {
