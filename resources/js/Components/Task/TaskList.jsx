@@ -47,7 +47,7 @@ export default function TaskList({
                         <div
                             key={task.id}
                             onClick={() => onTaskClick(task)}
-                            className="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors active:scale-[0.98]"
+                            className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors active:scale-[0.98]"
                         >
                             {/* Task Name */}
                             <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white line-clamp-2">
