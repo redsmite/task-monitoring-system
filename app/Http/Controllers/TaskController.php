@@ -24,26 +24,18 @@ class TaskController extends Controller
 
         // Get page numbers for each table separately
         $taskAllPage = $request->get('task_all_page', 1);
-        $notStartedPage = $request->get('not_started_page', 1);
-        $inProgressPage = $request->get('in_progress_page', 1);
         $completedPage = $request->get('completed_page', 1);
 
         // Get search parameters for each table
         $taskAllSearch = $request->get('task_all_search', '');
-        $notStartedSearch = $request->get('not_started_search', '');
-        $inProgressSearch = $request->get('in_progress_search', '');
         $completedSearch = $request->get('completed_search', '');
 
         // Get sort order for each table (asc or desc, default to desc)
         $taskAllSort = $request->get('task_all_sort', 'desc');
-        $notStartedSort = $request->get('not_started_sort', 'desc');
-        $inProgressSort = $request->get('in_progress_sort', 'desc');
         $completedSort = $request->get('completed_sort', 'desc');
 
         // Validate sort order
         $taskAllSort = in_array($taskAllSort, ['asc', 'desc']) ? $taskAllSort : 'desc';
-        $notStartedSort = in_array($notStartedSort, ['asc', 'desc']) ? $notStartedSort : 'desc';
-        $inProgressSort = in_array($inProgressSort, ['asc', 'desc']) ? $inProgressSort : 'desc';
         $completedSort = in_array($completedSort, ['asc', 'desc']) ? $completedSort : 'desc';
 
         // Helper function to apply search
@@ -70,20 +62,6 @@ class TaskController extends Controller
             $taskAllSearch
         )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
 
-        $notStarted = $applySearch(
-            Task::with('division', 'employee')
-                ->where('status', 'not_started')
-                ->orderBy('created_at', $notStartedSort),
-            $notStartedSearch
-        )->paginate(15, ['*'], 'not_started_page', $notStartedPage);
-
-        $inProgress = $applySearch(
-            Task::with('division', 'employee')
-                ->where('status', 'in_progress')
-                ->orderBy('created_at', $inProgressSort),
-            $inProgressSearch
-        )->paginate(15, ['*'], 'in_progress_page', $inProgressPage);
-
         $completed = $applySearch(
             Task::with('division', 'employee')
                 ->where('status', 'completed')
@@ -104,22 +82,6 @@ class TaskController extends Controller
                 'total' => $taskAll->total(),
             ],
 
-            'notStarted' => [
-                'data' => TaskResource::collection($notStarted->items())->resolve(),
-                'links' => $notStarted->linkCollection()->toArray(),
-                'current_page' => $notStarted->currentPage(),
-                'last_page' => $notStarted->lastPage(),
-                'per_page' => $notStarted->perPage(),
-                'total' => $notStarted->total(),
-            ],
-            'inProgress' => [
-                'data' => TaskResource::collection($inProgress->items())->resolve(),
-                'links' => $inProgress->linkCollection()->toArray(),
-                'current_page' => $inProgress->currentPage(),
-                'last_page' => $inProgress->lastPage(),
-                'per_page' => $inProgress->perPage(),
-                'total' => $inProgress->total(),
-            ],
             'completed' => [
                 'data' => TaskResource::collection($completed->items())->resolve(),
                 'links' => $completed->linkCollection()->toArray(),
@@ -131,14 +93,10 @@ class TaskController extends Controller
 
             'search_params' => [
                 'task_all_search' => $taskAllSearch,
-                'not_started_search' => $notStartedSearch,
-                'in_progress_search' => $inProgressSearch,
                 'completed_search' => $completedSearch,
             ],
             'sort_params' => [
                 'task_all_sort' => $taskAllSort,
-                'not_started_sort' => $notStartedSort,
-                'in_progress_sort' => $inProgressSort,
                 'completed_sort' => $completedSort,
             ],
         ]);
@@ -232,14 +190,14 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         // Check if ONLY description is being updated (no other fields present)
-        $hasOtherFields = $request->has('task_name') || 
-                         $request->has('assignee') || 
-                         $request->has('division') || 
-                         $request->has('last_action') || 
-                         $request->has('status') || 
-                         $request->has('priority') || 
-                         $request->has('due_date');
-        
+        $hasOtherFields = $request->has('task_name') ||
+            $request->has('assignee') ||
+            $request->has('division') ||
+            $request->has('last_action') ||
+            $request->has('status') ||
+            $request->has('priority') ||
+            $request->has('due_date');
+
         if ($request->has('description') && !$hasOtherFields) {
             $validated = $request->validate([
                 'description' => 'nullable|string',
