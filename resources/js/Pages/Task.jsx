@@ -282,7 +282,7 @@ export default function Task() {
                 <div className="hidden md:flex flex-col gap-8">
                     <TaskTable
                         borderColor="border-violet-600"
-                        tableTitle="All Tasks"
+                        tableTitle="Tasks"
                         tableIcon="📄"
                         data={taskAll.data}
                         employees_data={employees_data}
@@ -311,7 +311,7 @@ export default function Task() {
 
 
                     <TaskTable
-                        tableTitle="Completed"
+                        tableTitle="Completed Tasks"
                         borderColor="border-green-600"
                         tableIcon="✅"
                         data={completed.data}
