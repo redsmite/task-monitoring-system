@@ -304,38 +304,6 @@ export default function Task() {
                     />
 
                     <TaskList
-                        borderColor="border-gray-600"
-                        title="Not Started"
-                        icon="❌"
-                        data={notStarted.data}
-                        onTaskClick={handleTaskClick}
-                        onAddClick={() => handleAddClick('not_started')}
-                        showAddButton={true}
-                        paginationLinks={notStarted.links}
-                        paginationCurrentPage={notStarted.current_page}
-                        paginationPerPage={notStarted.per_page}
-                        paginationTotal={notStarted.total}
-                        paginationLastPage={notStarted.last_page}
-                        tableType="not_started"
-                    />
-
-                    <TaskList
-                        borderColor="border-orange-600"
-                        title="In Progress"
-                        icon="⌛"
-                        data={inProgress.data}
-                        onTaskClick={handleTaskClick}
-                        onAddClick={() => handleAddClick('in_progress')}
-                        showAddButton={true}
-                        paginationLinks={inProgress.links}
-                        paginationCurrentPage={inProgress.current_page}
-                        paginationPerPage={inProgress.per_page}
-                        paginationTotal={inProgress.total}
-                        paginationLastPage={inProgress.last_page}
-                        tableType="in_progress"
-                    />
-
-                    <TaskList
                         borderColor="border-green-600"
                         title="Completed"
                         icon="✅"
@@ -383,63 +351,6 @@ export default function Task() {
                         tableType="task_all"
                     />
 
-                    <TaskTable
-                        borderColor="border-gray-600"
-                        tableTitle="Not Started"
-                        tableIcon="❌"
-                        data={notStarted.data}
-                        employees_data={employees_data}
-                        divisions_data={divisions_data}
-                        paginationLinks={notStarted.links}
-                        paginationCurrentPage={notStarted.current_page}
-                        paginationPerPage={notStarted.per_page}
-                        paginationTotal={notStarted.total}
-                        paginationLastPage={notStarted.last_page}
-                        addData={addData}
-                        setDataAdd={setDataAdd}
-                        postAddData={postAddData}
-                        addProcessing={addProcessing}
-                        resetAddData={resetAddData}
-                        addErrors={addErrors}
-                        editData={editDataNotStarted}
-                        setEditData={setEditDataNotStarted}
-                        postEditData={postEditDataNotStarted}
-                        editProcessing={editProcessingNotStarted}
-                        resetEditData={resetEditDataNotStarted}
-                        editErrors={editErrorsNotStarted}
-                        deleteTask={deleteTask}
-                        onRowClick={handleTaskClick}
-                        tableType="not_started"
-                    />
-
-                    <TaskTable
-                        tableTitle="In Progress"
-                        borderColor="border-orange-600"
-                        tableIcon="⌛"
-                        data={inProgress.data}
-                        employees_data={employees_data}
-                        divisions_data={divisions_data}
-                        paginationLinks={inProgress.links}
-                        paginationCurrentPage={inProgress.current_page}
-                        paginationPerPage={inProgress.per_page}
-                        paginationTotal={inProgress.total}
-                        paginationLastPage={inProgress.last_page}
-                        addData={addData}
-                        setDataAdd={setDataAdd}
-                        postAddData={postAddData}
-                        addProcessing={addProcessing}
-                        resetAddData={resetAddData}
-                        addErrors={addErrors}
-                        editData={editDataInProgress}
-                        setEditData={setEditDataInProgress}
-                        postEditData={postEditDataInProgress}
-                        editProcessing={editProcessingInProgress}
-                        resetEditData={resetEditDataInProgress}
-                        editErrors={editErrorsInProgress}
-                        deleteTask={deleteTask}
-                        onRowClick={handleTaskClick}
-                        tableType="in_progress"
-                    />
 
                     <TaskTable
                         tableTitle="Completed"
