@@ -58,6 +58,7 @@ class TaskController extends Controller
 
         $taskAll = $applySearch(
             Task::with('division', 'employee')
+                ->whereIn('status', ['not_started', 'in_progress'])
                 ->orderBy('created_at', $taskAllSort),
             $taskAllSearch
         )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
