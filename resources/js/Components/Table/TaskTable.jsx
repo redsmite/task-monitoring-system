@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { router } from "@inertiajs/react";
-import { SelectItem } from "@/components/ui/select"
+import { SelectItem } from "@/Components/ui/select"
 import { toast } from 'sonner';
 import TableContainer from "../DivContainer/TableContainer";
 import Table from "./Table";

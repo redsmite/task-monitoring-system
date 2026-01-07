@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SelectItem } from "@/components/ui/select";
+import { SelectItem } from "@/Components/ui/select";
 import { toast } from 'sonner';
 import PrimaryInput from '../Form/PrimaryInput';
 import SelectInput from '../Form/SelectInput';

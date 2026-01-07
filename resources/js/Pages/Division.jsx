@@ -12,7 +12,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import DivisionContainer from '@/Components/Misc/DivisionContainer';
 import DivisionList from '@/Components/Division/DivisionList';
 import DivisionDrawer from '@/Components/Division/DivisionDrawer';
-import { SelectItem } from "@/components/ui/select";
+import { SelectItem } from "@/Components/ui/select";
 import { Head, useForm, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 

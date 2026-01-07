@@ -12,7 +12,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import DivisionContainer from '@/Components/Misc/DivisionContainer';
 import AssigneeList from '@/Components/Assignee/AssigneeList';
 import AssigneeDrawer from '@/Components/Assignee/AssigneeDrawer';
-import { SelectItem } from "@/components/ui/select";
+import { SelectItem } from "@/Components/ui/select";
 import { Head, useForm, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 
