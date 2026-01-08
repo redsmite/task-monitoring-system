@@ -436,7 +436,10 @@ export default function TaskDrawer({
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
                                     <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-4">📅 Due Date</h4>
-                                    <DateContainer bgcolor="bg-red-100">
+                                    <DateContainer 
+                                        bgcolor="bg-red-100"
+                                        textColor="text-gray-900 dark:text-gray-100"
+                                    >
                                         {(currentTask?.due_date || task?.due_date) ? (currentTask?.due_date || task?.due_date) : "No due date set."}
                                     </DateContainer>
                                 </div>

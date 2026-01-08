@@ -126,6 +126,7 @@ export default function Sidebar({ open, onClose, task }) {
                             <div className="flex flex-1 justify-center items-center">
                                 <DateContainer
                                     bgcolor="bg-red-100"
+                                    textColor="text-gray-900 dark:text-gray-100"
                                 >
                                     {currentTask?.due_date || task?.due_date ? `${currentTask?.due_date || task?.due_date}` : "No due date set."}
                                 </DateContainer>
