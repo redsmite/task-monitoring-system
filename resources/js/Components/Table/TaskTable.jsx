@@ -275,7 +275,7 @@ export default function TaskTable({
                 task_name: task.name || '',
                 assignee: task.employee?.id ? String(task.employee.id) : '',
                 division: divisionIds,
-                last_action: task.last_action || '',
+                last_action: task.latest_update?.update_text || task.last_action || '',
                 status: formatStatusToDb(task.status) || '',
                 priority: formatPriorityToDb(task.priority) || '',
                 due_date: task.due_date || '',
@@ -444,7 +444,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Assignee"
-                                    value={addData.assignee}
+                                    value={addData.assignee || ''}
                                     onChange={(value) => updateAddTaskData("assignee", value)}
                                 >
                                     {employees_data.map((employee) => (
@@ -474,7 +474,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Status"
-                                    value={addData.status || preselectStatus(tableType)}
+                                    value={addData.status || preselectStatus(tableType) || ''}
                                     onChange={(value) => updateAddTaskData("status", value)}
                                 >
                                     <SelectItem value="not_started">Not Started</SelectItem>
@@ -492,7 +492,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Priority"
-                                    value={addData.priority}
+                                    value={addData.priority || ''}
                                     onChange={(value) => updateAddTaskData("priority", value)}
                                 >
                                     <SelectItem value="high">High</SelectItem>
@@ -570,7 +570,7 @@ export default function TaskTable({
                                 </div>
                             </TableData>
                             <TableData>
-                                {task?.last_action}
+                                {task?.latest_update?.update_text || task?.last_action || 'No updates'}
                             </TableData>
                             <TableData
                                 className={`text-center font-semibold text-md ${task?.status === 'Not Started'
@@ -619,7 +619,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Assignee"
-                                    defaultValue={editData?.assignee || (task?.employee?.id ? String(task.employee.id) : undefined)}
+                                    value={editData?.assignee || (task?.employee?.id ? String(task.employee.id) : '')}
                                     onChange={(value) => updateEditTaskData("assignee", value)}
                                 >
                                     {employees_data.map((employee) => (
@@ -648,7 +648,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Status"
-                                    defaultValue={editData?.status || formatStatusToDb(task?.status) || ''}
+                                    value={editData?.status || formatStatusToDb(task?.status) || ''}
                                     onChange={(value) => updateEditTaskData("status", value)}
                                 >
                                     <SelectItem value="not_started">Not Started</SelectItem>
@@ -666,7 +666,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Priority"
-                                    defaultValue={editData?.priority || formatPriorityToDb(task?.priority) || ''}
+                                    value={editData?.priority || formatPriorityToDb(task?.priority) || ''}
                                     onChange={(value) => updateEditTaskData("priority", value)}
                                 >
                                     <SelectItem value="high">High</SelectItem>
@@ -767,7 +767,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Assignee"
-                                    value={addData.assignee}
+                                    value={addData.assignee || ''}
                                     onChange={(value) => updateAddTaskData("assignee", value)}
                                 >
                                     {employees_data.map((employee) => (
@@ -797,7 +797,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Status"
-                                    value={addData.status || preselectStatus(tableType)}
+                                    value={addData.status || preselectStatus(tableType) || ''}
                                     onChange={(value) => updateAddTaskData("status", value)}
                                 >
                                     <SelectItem value="not_started">Not Started</SelectItem>
@@ -815,7 +815,7 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Priority"
-                                    value={addData.priority}
+                                    value={addData.priority || ''}
                                     onChange={(value) => updateAddTaskData("priority", value)}
                                 >
                                     <SelectItem value="high">High</SelectItem>

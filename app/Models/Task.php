@@ -46,4 +46,16 @@ class Task extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+
+    // Task -> Updates (History)
+    public function updates()
+    {
+        return $this->hasMany(TaskUpdate::class)->orderBy('created_at', 'desc');
+    }
+
+    // Task -> Latest Update
+    public function latestUpdate()
+    {
+        return $this->hasOne(TaskUpdate::class)->latestOfMany();
+    }
 }

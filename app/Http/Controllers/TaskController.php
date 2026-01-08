@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\Task;
+use App\Models\TaskUpdate;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,6 +45,9 @@ class TaskController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
                         ->orWhere('last_action', 'like', '%' . $search . '%')
+                        ->orWhereHas('updates', function ($updateQuery) use ($search) {
+                            $updateQuery->where('update_text', 'like', '%' . $search . '%');
+                        })
                         ->orWhereHas('employee', function ($empQuery) use ($search) {
                             $empQuery->where('first_name', 'like', '%' . $search . '%')
                                 ->orWhere('last_name', 'like', '%' . $search . '%');
@@ -57,14 +61,14 @@ class TaskController extends Controller
         };
 
         $taskAll = $applySearch(
-            Task::with('divisions', 'employee')
+            Task::with('divisions', 'employee', 'latestUpdate')
                 ->whereIn('status', ['not_started', 'in_progress'])
                 ->orderBy('created_at', $taskAllSort),
             $taskAllSearch
         )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
 
         $completed = $applySearch(
-            Task::with('divisions', 'employee')
+            Task::with('divisions', 'employee', 'latestUpdate')
                 ->where('status', 'completed')
                 ->orderBy('created_at', $completedSort),
             $completedSearch
@@ -155,7 +159,7 @@ class TaskController extends Controller
         $task = Task::create([
             'name' => $validated['task_name'],
             'employee_id' => $employeeId,
-            'last_action' => $validated['last_action'] ?? null,
+            'last_action' => $validated['last_action'] ?? null, // Keep for backward compatibility
             'status' => $validated['status'] ?? null,
             'priority' => $validated['priority'] ?? null,
             'due_date' => $dueDate,
@@ -165,6 +169,15 @@ class TaskController extends Controller
         // Attach divisions to task
         if (!empty($divisionIds)) {
             $task->divisions()->sync($divisionIds);
+        }
+
+        // Create initial task update if last_action is provided
+        if (!empty($validated['last_action'])) {
+            TaskUpdate::create([
+                'task_id' => $task->id,
+                'update_text' => $validated['last_action'],
+                'user_id' => Auth::id(),
+            ]);
         }
 
         // Log activity
@@ -184,7 +197,11 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        //
+        $task->load(['divisions', 'employee', 'updates.user']);
+        
+        return response()->json([
+            'task' => new TaskResource($task),
+        ]);
     }
 
     /**
@@ -396,6 +413,26 @@ class TaskController extends Controller
         // Sync divisions
         $task->divisions()->sync($divisionIds);
 
+        // Handle last_action update - update latest or create new if provided
+        if (!empty($validated['last_action']) && isset($validated['last_action'])) {
+            $latestUpdate = $task->latestUpdate;
+            if ($latestUpdate) {
+                // Update the latest update if text changed
+                if ($latestUpdate->update_text !== $validated['last_action']) {
+                    $latestUpdate->update([
+                        'update_text' => $validated['last_action'],
+                    ]);
+                }
+            } else {
+                // Create first update if none exists
+                TaskUpdate::create([
+                    'task_id' => $task->id,
+                    'update_text' => $validated['last_action'],
+                    'user_id' => Auth::id(),
+                ]);
+            }
+        }
+
         // Log activity
         Activity::create([
             'action' => 'updated',
@@ -429,5 +466,99 @@ class TaskController extends Controller
         ]);
 
         return redirect()->route('task.index')->with('success', 'Task deleted!');
+    }
+
+    /**
+     * Store a new task update.
+     */
+    public function storeUpdate(Request $request, Task $task)
+    {
+        $validated = $request->validate([
+            'update_text' => 'required|string|max:1000',
+        ]);
+
+        $update = TaskUpdate::create([
+            'task_id' => $task->id,
+            'update_text' => $validated['update_text'],
+            'user_id' => Auth::id(),
+        ]);
+
+        // Update last_action for backward compatibility
+        $task->update(['last_action' => $validated['update_text']]);
+
+        // Log activity
+        Activity::create([
+            'action' => 'created',
+            'model_type' => TaskUpdate::class,
+            'model_id' => $update->id,
+            'description' => "Update added to task '{$task->name}'",
+            'user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Update added successfully!');
+    }
+
+    /**
+     * Update an existing task update.
+     */
+    public function updateUpdate(Request $request, Task $task, TaskUpdate $update)
+    {
+        // Verify the update belongs to the task
+        if ($update->task_id !== $task->id) {
+            abort(403, 'Update does not belong to this task');
+        }
+
+        $validated = $request->validate([
+            'update_text' => 'required|string|max:1000',
+        ]);
+
+        $update->update([
+            'update_text' => $validated['update_text'],
+        ]);
+
+        // Update last_action if this is the latest update
+        $latestUpdate = $task->latestUpdate;
+        if ($latestUpdate && $latestUpdate->id === $update->id) {
+            $task->update(['last_action' => $validated['update_text']]);
+        }
+
+        // Log activity
+        Activity::create([
+            'action' => 'updated',
+            'model_type' => TaskUpdate::class,
+            'model_id' => $update->id,
+            'description' => "Update edited for task '{$task->name}'",
+            'user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Update updated successfully!');
+    }
+
+    /**
+     * Delete a task update.
+     */
+    public function destroyUpdate(Task $task, TaskUpdate $update)
+    {
+        // Verify the update belongs to the task
+        if ($update->task_id !== $task->id) {
+            abort(403, 'Update does not belong to this task');
+        }
+
+        $update->delete();
+
+        // Update last_action to the new latest update if exists
+        $latestUpdate = $task->latestUpdate;
+        $task->update(['last_action' => $latestUpdate ? $latestUpdate->update_text : null]);
+
+        // Log activity
+        Activity::create([
+            'action' => 'deleted',
+            'model_type' => TaskUpdate::class,
+            'model_id' => $update->id,
+            'description' => "Update deleted from task '{$task->name}'",
+            'user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Update deleted successfully!');
     }
 }

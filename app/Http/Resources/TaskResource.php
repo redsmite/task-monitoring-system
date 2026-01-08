@@ -58,6 +58,32 @@ class TaskResource extends JsonResource
                 'last_name' => $this->employee->last_name,
             ] : null,
 
+            // Latest update for display in tables/lists
+            'latest_update' => $this->latestUpdate ? [
+                'id' => $this->latestUpdate->id,
+                'update_text' => $this->latestUpdate->update_text,
+                'created_at' => $this->latestUpdate->created_at ? $this->latestUpdate->created_at->format('m/d/Y H:i') : null,
+                'user' => $this->latestUpdate->user ? [
+                    'id' => $this->latestUpdate->user->id,
+                    'name' => $this->latestUpdate->user->name,
+                ] : null,
+            ] : null,
+
+            // All updates for history view
+            'updates' => $this->whenLoaded('updates', function () {
+                return $this->updates->map(function ($update) {
+                    return [
+                        'id' => $update->id,
+                        'update_text' => $update->update_text,
+                        'created_at' => $update->created_at ? $update->created_at->format('m/d/Y H:i') : null,
+                        'user' => $update->user ? [
+                            'id' => $update->user->id,
+                            'name' => $update->user->name,
+                        ] : null,
+                    ];
+                });
+            }),
+
             'created_at' => $this->created_at ? $this->created_at->format('m/d/Y') : null,
         ];
     }

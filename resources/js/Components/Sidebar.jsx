@@ -5,6 +5,8 @@ import StatusContainer from "./Misc/StatusContainer";
 import PriorityContainer from "./Misc/PriorityContainer";
 import DivisionContainer from "./Misc/DivisionContainer";
 import DateContainer from "./Misc/DateContainer";
+import PrimaryInput from "./Form/PrimaryInput";
+import PrimaryButton from "./Button/PrimaryButton";
 
 export default function Sidebar({ open, onClose, task }) {
 
@@ -12,10 +14,52 @@ export default function Sidebar({ open, onClose, task }) {
     const [editDescriptionId, setEditDescriptionId] = useState(null);
     const [descriptionValue, setDescriptionValue] = useState(task?.description || "");
 
+    // Task Updates/History
+    const [updates, setUpdates] = useState([]);
+    const [currentTask, setCurrentTask] = useState(task);
+    const [editingUpdateId, setEditingUpdateId] = useState(null);
+    const [editUpdateText, setEditUpdateText] = useState("");
+    const [newUpdateText, setNewUpdateText] = useState("");
+    const [showAddUpdate, setShowAddUpdate] = useState(false);
+
+    // Fetch full task data with updates when sidebar opens
+    useEffect(() => {
+        if (open && task?.id) {
+            fetch(route('task.show', task.id))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.task) {
+                        setCurrentTask(data.task);
+                        setUpdates(data.task.updates || []);
+                    }
+                })
+                .catch(() => {
+                    // Fallback to task from props
+                    setCurrentTask(task);
+                    if (task?.updates) {
+                        setUpdates(task.updates);
+                    } else if (task?.latest_update) {
+                        setUpdates([task.latest_update]);
+                    } else {
+                        setUpdates([]);
+                    }
+                });
+        } else {
+            setCurrentTask(task);
+            if (task?.updates) {
+                setUpdates(task.updates);
+            } else if (task?.latest_update) {
+                setUpdates([task.latest_update]);
+            } else {
+                setUpdates([]);
+            }
+        }
+    }, [open, task?.id]);
+
     // Sync descriptionValue with task prop when task changes
     useEffect(() => {
-        setDescriptionValue(task?.description || "");
-    }, [task?.description]);
+        setDescriptionValue(currentTask?.description || task?.description || "");
+    }, [currentTask?.description, task?.description]);
 
     const ToggleDescriptionEdit = (task) => {
         setEditDescriptionId(task.id);
@@ -61,18 +105,18 @@ export default function Sidebar({ open, onClose, task }) {
                 <div className="p-4 space-y-6">
                     <div className="flex justify-end gap-4">
                         <StatusContainer
-                            status={task?.status}
+                            status={currentTask?.status || task?.status}
                         >
-                            {task?.status}
+                            {currentTask?.status || task?.status}
                         </StatusContainer>
                         <PriorityContainer
-                            priority={task?.priority ? task?.priority : ''}
+                            priority={(currentTask?.priority || task?.priority) ? (currentTask?.priority || task?.priority) : ''}
                         >
-                            {task?.priority ? task?.priority : "No priority set."}
+                            {(currentTask?.priority || task?.priority) ? (currentTask?.priority || task?.priority) : "No priority set."}
                         </PriorityContainer>
                     </div>
 
-                    <h1 className="text-3xl font-semibold">{task?.name}</h1>
+                    <h1 className="text-3xl font-semibold">{currentTask?.name || task?.name}</h1>
 
                     <div className="grid grid-cols-3 border border-gray-300 rounded overflow-hidden">
                         <div className="min-h-44 p-3 flex flex-col border-r border-gray-300">
@@ -83,7 +127,7 @@ export default function Sidebar({ open, onClose, task }) {
                                 <DateContainer
                                     bgcolor="bg-red-100"
                                 >
-                                    {task?.due_date ? `${task.due_date}` : "No due date set."}
+                                    {currentTask?.due_date || task?.due_date ? `${currentTask?.due_date || task?.due_date}` : "No due date set."}
                                 </DateContainer>
                             </div>
                         </div>
@@ -93,7 +137,7 @@ export default function Sidebar({ open, onClose, task }) {
                                 <h1 className="text-md font-semibold">👤Assigned To</h1>
                             </div>
                             <div className="flex flex-1 justify-center items-center">
-                                <p className="text-violet-500 font-semibold">{task?.employee?.first_name} {task?.employee?.last_name}</p>
+                                <p className="text-violet-500 font-semibold">{(currentTask?.employee || task?.employee) ? `${(currentTask?.employee || task?.employee).first_name} ${(currentTask?.employee || task?.employee).last_name}` : "Not assigned"}</p>
                             </div>
                         </div>
 
@@ -102,26 +146,40 @@ export default function Sidebar({ open, onClose, task }) {
                                 <h1 className="text-md font-semibold">🔰Division</h1>
                             </div>
                             <div className="flex flex-1 justify-center items-center">
-                                <div>
-                                    <DivisionContainer
-                                        bgcolor={task?.division?.division_color}
-                                    >
-                                        {task?.division?.division_name}
-                                    </DivisionContainer>
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                    {(currentTask?.divisions || task?.divisions) && (currentTask?.divisions || task?.divisions).length > 0 ? (
+                                        (currentTask?.divisions || task?.divisions).map((division) => (
+                                            <DivisionContainer
+                                                key={division.id}
+                                                bgcolor={division.division_color}
+                                                compact={(currentTask?.divisions || task?.divisions).length > 2}
+                                            >
+                                                {division.division_name}
+                                            </DivisionContainer>
+                                        ))
+                                    ) : (currentTask?.division || task?.division) ? (
+                                        <DivisionContainer
+                                            bgcolor={(currentTask?.division || task?.division).division_color}
+                                        >
+                                            {(currentTask?.division || task?.division).division_name}
+                                        </DivisionContainer>
+                                    ) : (
+                                        <p className="text-gray-500 text-sm">No division</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         <div
-                            onClick={() => ToggleDescriptionEdit(task)}
+                            onClick={() => ToggleDescriptionEdit(currentTask || task)}
                             className="group relative min-h-48 col-span-3 p-3 border-t border-gray-300 hover:bg-stone-200 dark:hover:bg-stone-700 cursor-pointer"
                         >
-                            {editDescriptionId === task?.id ? (
+                            {editDescriptionId === (currentTask?.id || task?.id) ? (
                                 <textarea
                                     value={descriptionValue}
                                     onChange={(e) => setDescriptionValue(e.target.value)}
                                     className="w-full h-full text-sm border rounded p-2"
-                                    onBlur={() => saveDescription(task?.id)}
+                                    onBlur={() => saveDescription(currentTask?.id || task?.id)}
                                     onClick={(e) => e.stopPropagation()}
                                     autoFocus
                                     maxLength={200}
@@ -132,7 +190,7 @@ export default function Sidebar({ open, onClose, task }) {
                                 </p>
                             )}
 
-                            {editDescriptionId != task?.id && (
+                            {editDescriptionId != (currentTask?.id || task?.id) && (
                                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition flex items-end justify-end p-2">
                                     <span className="text-xs text-gray-600 bg-white dark:text-white dark:bg-zinc-800 px-2 py-1 rounded shadow">
                                         ✏️ Edit Description
@@ -142,9 +200,201 @@ export default function Sidebar({ open, onClose, task }) {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <h1 className="text-3xl font-semibold">Last Action</h1>
-                        <p>{task?.last_action ? task?.last_action : "Add a short update on this task."}</p>
+                    {/* Task History/Updates */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-3xl font-semibold">History</h1>
+                            <button
+                                onClick={() => setShowAddUpdate(!showAddUpdate)}
+                                className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
+                            >
+                                {showAddUpdate ? 'Cancel' : '+ Add Update'}
+                            </button>
+                        </div>
+
+                        {/* Add New Update Form */}
+                        {showAddUpdate && (
+                            <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900 space-y-3">
+                                <PrimaryInput
+                                    type="text"
+                                    placeholder="Enter update..."
+                                    value={newUpdateText}
+                                    onChange={(e) => setNewUpdateText(e.target.value)}
+                                />
+                                <div className="flex gap-2">
+                                    <PrimaryButton
+                                        text="Save"
+                                        onClick={() => {
+                                            if (!newUpdateText.trim()) {
+                                                toast.error("Update text cannot be empty");
+                                                return;
+                                            }
+                                            router.post(route('task.updates.store', currentTask?.id || task?.id), {
+                                                update_text: newUpdateText,
+                                            }, {
+                                                preserveScroll: true,
+                                                preserveState: true,
+                                                onSuccess: () => {
+                                                    toast.success("Update added successfully!");
+                                                    setNewUpdateText("");
+                                                    setShowAddUpdate(false);
+                                                    // Reload task data
+                                                    // Reload updates
+                                                    fetch(route('task.show', currentTask?.id || task?.id))
+                                                        .then(res => res.json())
+                                                        .then(data => {
+                                                            if (data.task) {
+                                                                setCurrentTask(data.task);
+                                                                setUpdates(data.task.updates || []);
+                                                            }
+                                                        })
+                                                        .catch(() => {});
+                                                    router.reload({ only: ['taskAll', 'completed'] });
+                                                },
+                                                onError: (errors) => {
+                                                    const messages = Object.values(errors).flat().join(" ");
+                                                    toast.error(messages || "Something went wrong");
+                                                }
+                                            });
+                                        }}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            setShowAddUpdate(false);
+                                            setNewUpdateText("");
+                                        }}
+                                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Updates List */}
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {updates.length === 0 ? (
+                                <p className="text-gray-500 dark:text-gray-400 text-sm italic">
+                                    No updates yet. Add an update to track task progress.
+                                </p>
+                            ) : (
+                                updates.map((update) => (
+                                    <div
+                                        key={update.id}
+                                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
+                                    >
+                                        {editingUpdateId === update.id ? (
+                                            <div className="space-y-2">
+                                                <PrimaryInput
+                                                    type="text"
+                                                    value={editUpdateText}
+                                                    onChange={(e) => setEditUpdateText(e.target.value)}
+                                                />
+                                                <div className="flex gap-2">
+                                                    <PrimaryButton
+                                                        text="Save"
+                                                        onClick={() => {
+                                                            if (!editUpdateText.trim()) {
+                                                                toast.error("Update text cannot be empty");
+                                                                return;
+                                                            }
+                                                            router.patch(route('task.updates.update', [currentTask?.id || task?.id, update.id]), {
+                                                                update_text: editUpdateText,
+                                                            }, {
+                                                                preserveScroll: true,
+                                                                preserveState: true,
+                                                                onSuccess: () => {
+                                                                    toast.success("Update updated successfully!");
+                                                                    setEditingUpdateId(null);
+                                                                    setEditUpdateText("");
+                                                                    // Reload updates
+                                                                    fetch(route('task.show', currentTask?.id || task?.id))
+                                                                        .then(res => res.json())
+                                                                        .then(data => {
+                                                                            if (data.task) {
+                                                                                setCurrentTask(data.task);
+                                                                                setUpdates(data.task.updates || []);
+                                                                            }
+                                                                        })
+                                                                        .catch(() => {});
+                                                                    router.reload({ only: ['taskAll', 'completed'] });
+                                                                },
+                                                                onError: (errors) => {
+                                                                    const messages = Object.values(errors).flat().join(" ");
+                                                                    toast.error(messages || "Something went wrong");
+                                                                }
+                                                            });
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingUpdateId(null);
+                                                            setEditUpdateText("");
+                                                        }}
+                                                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <p className="text-sm text-gray-700 dark:text-gray-300">
+                                                    {update.update_text}
+                                                </p>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {update.created_at || 'Just now'}
+                                                        {update.user && ` • by ${update.user.name}`}
+                                                    </span>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingUpdateId(update.id);
+                                                                setEditUpdateText(update.update_text);
+                                                            }}
+                                                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (!confirm("Are you sure you want to delete this update?")) return;
+                                                                router.delete(route('task.updates.destroy', [currentTask?.id || task?.id, update.id]), {
+                                                                    preserveScroll: true,
+                                                                    preserveState: true,
+                                                                    onSuccess: () => {
+                                                                        toast.success("Update deleted successfully!");
+                                                                        // Reload updates
+                                                                        fetch(route('task.show', currentTask?.id || task?.id))
+                                                                            .then(res => res.json())
+                                                                            .then(data => {
+                                                                                if (data.task) {
+                                                                                    setCurrentTask(data.task);
+                                                                                    setUpdates(data.task.updates || []);
+                                                                                }
+                                                                            })
+                                                                            .catch(() => {});
+                                                                        router.reload({ only: ['taskAll', 'completed'] });
+                                                                    },
+                                                                    onError: (errors) => {
+                                                                        const messages = Object.values(errors).flat().join(" ");
+                                                                        toast.error(messages || "Something went wrong");
+                                                                    }
+                                                                });
+                                                            }}
+                                                            className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

@@ -24,6 +24,10 @@ Route::middleware('auth')->group(function () {
 
     // Tasks
     Route::resource('task', TaskController::class);
+    // Task Updates
+    Route::post('task/{task}/updates', [TaskController::class, 'storeUpdate'])->name('task.updates.store');
+    Route::patch('task/{task}/updates/{update}', [TaskController::class, 'updateUpdate'])->name('task.updates.update');
+    Route::delete('task/{task}/updates/{update}', [TaskController::class, 'destroyUpdate'])->name('task.updates.destroy');
 
     // Assignee
     Route::resource('assignee', EmployeeController::class);

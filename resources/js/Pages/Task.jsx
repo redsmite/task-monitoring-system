@@ -57,8 +57,14 @@ export default function Task() {
                 ...completed.data,
             ];
             const updatedTask = allTasks.find(t => t.id === viewedTask.id);
-            if (updatedTask && JSON.stringify(updatedTask) !== JSON.stringify(viewedTask)) {
-                setViewedTask(updatedTask);
+            // Only update if the task doesn't have updates loaded (to preserve full data)
+            if (updatedTask && !viewedTask.updates && JSON.stringify(updatedTask) !== JSON.stringify(viewedTask)) {
+                // Merge updates if available in viewedTask
+                if (viewedTask.updates) {
+                    setViewedTask({ ...updatedTask, updates: viewedTask.updates });
+                } else {
+                    setViewedTask(updatedTask);
+                }
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,10 +98,22 @@ export default function Task() {
         };
     }, [drawerOpen, sidebarOpen]);
 
-    const handleTaskClick = (task) => {
-        setViewedTask(task);
+    const handleTaskClick = async (task) => {
+        // Fetch full task data with updates
+        try {
+            const response = await fetch(route('task.show', task.id));
+            const data = await response.json();
+            if (data.task) {
+                setViewedTask(data.task);
+            } else {
+                setViewedTask(task);
+            }
+        } catch (error) {
+            // Fallback to using the task from list if fetch fails
+            setViewedTask(task);
+        }
         setIsAddMode(false);
-        setDrawerOpen(true); // Use drawer for mobile, sidebar for desktop
+        setDrawerOpen(true);
         setSidebarOpen(true);
     }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
 import { SelectItem } from "@/Components/ui/select";
 import { toast } from 'sonner';
 import PrimaryInput from '../Form/PrimaryInput';
@@ -36,6 +37,8 @@ export default function TaskDrawer({
 }) {
     const [isEditMode, setIsEditMode] = useState(false);
     const [isAddModeActive, setIsAddModeActive] = useState(isAddMode);
+    const [currentTask, setCurrentTask] = useState(task);
+    const [taskUpdates, setTaskUpdates] = useState([]);
 
     // Sync edit mode with add mode
     useEffect(() => {
@@ -52,6 +55,33 @@ export default function TaskDrawer({
             setIsAddModeActive(false);
         }
     }, [open]);
+
+    // Update currentTask when task prop changes
+    useEffect(() => {
+        if (task) {
+            setCurrentTask(task);
+            setTaskUpdates(task?.updates || []);
+        }
+    }, [task]);
+
+    // Fetch full task data with updates when drawer opens
+    useEffect(() => {
+        if (open && task?.id && !isAddModeActive) {
+            fetch(route('task.show', task.id))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.task) {
+                        setCurrentTask(data.task);
+                        setTaskUpdates(data.task.updates || []);
+                    }
+                })
+                .catch(() => {
+                    // Fallback to task from props
+                    setCurrentTask(task);
+                    setTaskUpdates(task?.updates || []);
+                });
+        }
+    }, [open, task?.id, isAddModeActive]);
 
     // Formatting Functions
     const formatStatusToDb = (value) => {
@@ -102,38 +132,43 @@ export default function TaskDrawer({
 
     // Helper function to initialize edit data from task
     const initializeEditData = () => {
-        if (task && !isAddModeActive) {
+        const taskToUse = currentTask || task;
+        if (taskToUse && !isAddModeActive) {
             // Parse due_date from "m/d/Y" format to Date object
             let parsedDueDate = '';
-            if (task.due_date) {
+            if (taskToUse.due_date) {
                 try {
                     // Parse "m/d/Y" format
-                    const [month, day, year] = task.due_date.split('/');
+                    const [month, day, year] = taskToUse.due_date.split('/');
                     if (month && day && year) {
                         parsedDueDate = new Date(year, month - 1, day);
                     }
                 } catch (e) {
                     // If parsing fails, try direct Date conversion
-                    parsedDueDate = new Date(task.due_date);
+                    parsedDueDate = new Date(taskToUse.due_date);
                 }
             }
 
             // Handle both old format (single division) and new format (array of divisions)
-            const divisionIds = task.divisions && task.divisions.length > 0
-                ? task.divisions.map(d => String(d.id))
-                : task.division?.id 
-                    ? [String(task.division.id)]
+            const divisionIds = taskToUse.divisions && taskToUse.divisions.length > 0
+                ? taskToUse.divisions.map(d => String(d.id))
+                : taskToUse.division?.id 
+                    ? [String(taskToUse.division.id)]
                     : [];
 
             setEditData({
-                task_name: task.name || '',
-                assignee: task.employee?.id ? String(task.employee.id) : '',
+                task_name: taskToUse.name || '',
+                assignee: taskToUse.employee?.id ? String(taskToUse.employee.id) : '',
                 division: divisionIds,
-                last_action: task.last_action || '',
-                status: formatStatusToDb(task.status) || '',
-                priority: formatPriorityToDb(task.priority) || '',
+                last_action: taskToUse.latest_update?.update_text || taskToUse.last_action || '',
+                status: formatStatusToDb(taskToUse.status) || '',
+                priority: formatPriorityToDb(taskToUse.priority) || '',
                 due_date: parsedDueDate || '',
-                description: task.description || '',
+                description: taskToUse.description || '',
+                showAddUpdate: false,
+                newUpdateText: '',
+                editingUpdateId: null,
+                editUpdateText: '',
             });
         }
     }
@@ -142,11 +177,11 @@ export default function TaskDrawer({
     useEffect(() => {
         initializeEditData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [task, isAddModeActive]);
+    }, [currentTask, task, isAddModeActive]);
 
     // Re-initialize edit data when entering edit mode
     useEffect(() => {
-        if (isEditMode && !isAddModeActive && task) {
+        if (isEditMode && !isAddModeActive && (currentTask || task)) {
             initializeEditData();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,16 +199,29 @@ export default function TaskDrawer({
 
     // Save Edit
     const saveEdit = () => {
-        if (!task) return;
+        const taskId = currentTask?.id || task?.id;
+        if (!taskId) return;
 
-        postEditData(route('task.update', task.id), {
-            method: 'patch',
+        postEditData(route('task.update', taskId), {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
                 toast.success("Task updated successfully!");
                 setIsEditMode(false);
                 resetEditData();
+                // Reload task data with updates
+                if (taskId) {
+                    fetch(route('task.show', taskId))
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.task) {
+                                setCurrentTask(data.task);
+                                setTaskUpdates(data.task.updates || []);
+                            }
+                        })
+                        .catch(() => {});
+                }
+                router.reload({ only: ['taskAll', 'completed'] });
             },
             onError: (errors) => {
                 const messages = Object.values(errors).flat().join(" ");
@@ -185,7 +233,6 @@ export default function TaskDrawer({
     // Save Add
     const saveAdd = () => {
         postAddData(route('task.store'), {
-            method: 'post',
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
@@ -204,12 +251,13 @@ export default function TaskDrawer({
 
     // Handle delete
     const handleDelete = () => {
-        if (!task) return;
+        const taskId = currentTask?.id || task?.id;
+        if (!taskId) return;
         if (!confirm("Are you sure you want to delete this task?")) return;
 
         toast.loading("Deleting task...");
 
-        deleteTask(task.id);
+        deleteTask(taskId);
     }
 
     const currentData = isAddModeActive ? addData : editData;
@@ -238,7 +286,7 @@ export default function TaskDrawer({
                 {/* Header */}
                 <div className="sticky top-0 bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex justify-between items-center z-10 shadow-sm">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white pr-4">
-                        {isAddModeActive ? 'Add New Task' : task?.name || 'Task Details'}
+                        {isAddModeActive ? 'Add New Task' : (currentTask?.name || task?.name || 'Task Details')}
                     </h2>
                     <button
                         onClick={onClose}
@@ -288,8 +336,8 @@ export default function TaskDrawer({
 
                             <PrimaryInput
                                 type="text"
-                                label="Last Action"
-                                placeholder="Enter last action"
+                                label="Latest Update"
+                                placeholder="Enter update (will create new history entry)"
                                 value={currentData.last_action || ''}
                                 onChange={(e) => updateFormData("last_action", e.target.value)}
                                 error={currentErrors?.last_action}
@@ -368,11 +416,11 @@ export default function TaskDrawer({
                         <>
                             {/* Status and Priority - Top Right */}
                             <div className="flex flex-wrap gap-3 justify-end mb-4">
-                                <StatusContainer status={task?.status}>
-                                    {task?.status}
+                                <StatusContainer status={currentTask?.status || task?.status}>
+                                    {currentTask?.status || task?.status}
                                 </StatusContainer>
-                                <PriorityContainer priority={task?.priority}>
-                                    {task?.priority || 'No priority set.'}
+                                <PriorityContainer priority={currentTask?.priority || task?.priority}>
+                                    {currentTask?.priority || task?.priority || 'No priority set.'}
                                 </PriorityContainer>
                             </div>
 
@@ -380,7 +428,7 @@ export default function TaskDrawer({
                             <div className="space-y-2 mb-6">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Description</h3>
                                 <p className="text-gray-700 dark:text-gray-300 text-sm">
-                                    {task?.description || "No description."}
+                                    {currentTask?.description || task?.description || "No description."}
                                 </p>
                             </div>
 
@@ -389,45 +437,240 @@ export default function TaskDrawer({
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
                                     <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-4">📅 Due Date</h4>
                                     <DateContainer bgcolor="bg-red-100">
-                                        {task?.due_date ? task.due_date : "No due date set."}
+                                        {(currentTask?.due_date || task?.due_date) ? (currentTask?.due_date || task?.due_date) : "No due date set."}
                                     </DateContainer>
                                 </div>
 
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
                                     <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">👤 Assigned To</h4>
                                     <p className="text-violet-500 dark:text-violet-400 font-semibold text-sm">
-                                        {task?.employee ? `${task.employee.first_name} ${task.employee.last_name}` : "Not assigned"}
+                                        {(currentTask?.employee || task?.employee) ? `${(currentTask?.employee || task?.employee).first_name} ${(currentTask?.employee || task?.employee).last_name}` : "Not assigned"}
                                     </p>
                                 </div>
 
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
                                     <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 sm:mb-4">🔰 Division</h4>
-                                    {task?.divisions && task.divisions.length > 0 ? (
+                                    {(currentTask?.divisions || task?.divisions) && (currentTask?.divisions || task?.divisions).length > 0 ? (
                                         <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                                            {task.divisions.map((division) => (
+                                            {(currentTask?.divisions || task?.divisions).map((division) => (
                                                 <DivisionContainer 
                                                     key={division.id} 
                                                     bgcolor={division.division_color}
-                                                    compact={task.divisions.length > 3}
+                                                    compact={(currentTask?.divisions || task?.divisions).length > 3}
                                                 >
                                                     {division.division_name}
                                                 </DivisionContainer>
                                             ))}
                                         </div>
-                                    ) : task?.division ? (
-                                        <DivisionContainer bgcolor={task.division.division_color}>
-                                            {task.division.division_name}
+                                    ) : (currentTask?.division || task?.division) ? (
+                                        <DivisionContainer bgcolor={(currentTask?.division || task?.division).division_color}>
+                                            {(currentTask?.division || task?.division).division_name}
                                         </DivisionContainer>
                                     ) : (
                                         <p className="text-gray-600 dark:text-gray-400 text-sm">No division assigned</p>
                                     )}
                                 </div>
 
-                                <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
-                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Last Action</h4>
-                                    <p className="text-gray-700 dark:text-gray-300 text-sm">
-                                        {task?.last_action || "No last action."}
-                                    </p>
+                            </div>
+
+                            {/* Task History/Updates */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">History</h3>
+                                    <button
+                                        onClick={() => {
+                                            const currentShowAdd = !(currentData.showAddUpdate || false);
+                                            updateFormData("showAddUpdate", currentShowAdd);
+                                        }}
+                                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
+                                    >
+                                        {currentData.showAddUpdate ? 'Cancel' : '+ Add Update'}
+                                    </button>
+                                </div>
+
+                                {/* Add New Update Form */}
+                                {currentData.showAddUpdate && (
+                                    <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900 space-y-3">
+                                        <PrimaryInput
+                                            type="text"
+                                            placeholder="Enter update..."
+                                            value={currentData.newUpdateText || ''}
+                                            onChange={(e) => updateFormData("newUpdateText", e.target.value)}
+                                        />
+                                        <div className="flex gap-2">
+                                            <PrimaryButton
+                                                text="Save"
+                                                onClick={() => {
+                                                    if (!currentData.newUpdateText?.trim()) {
+                                                        toast.error("Update text cannot be empty");
+                                                        return;
+                                                    }
+                                                    router.post(route('task.updates.store', currentTask?.id || task?.id), {
+                                                        update_text: currentData.newUpdateText,
+                                                    }, {
+                                                        preserveScroll: true,
+                                                        preserveState: true,
+                                                        onSuccess: () => {
+                                                            toast.success("Update added successfully!");
+                                                            updateFormData("newUpdateText", "");
+                                                            updateFormData("showAddUpdate", false);
+                                                            // Reload updates
+                                                            fetch(route('task.show', currentTask?.id || task?.id))
+                                                                .then(res => res.json())
+                                                                .then(data => {
+                                                                    if (data.task) {
+                                                                        setCurrentTask(data.task);
+                                                                        setTaskUpdates(data.task.updates || []);
+                                                                    }
+                                                                })
+                                                                .catch(() => {});
+                                                            router.reload({ only: ['taskAll', 'completed'] });
+                                                        },
+                                                        onError: (errors) => {
+                                                            const messages = Object.values(errors).flat().join(" ");
+                                                            toast.error(messages || "Something went wrong");
+                                                        }
+                                                    });
+                                                }}
+                                            />
+                                            <button
+                                                onClick={() => {
+                                                    updateFormData("showAddUpdate", false);
+                                                    updateFormData("newUpdateText", "");
+                                                }}
+                                                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Updates List */}
+                                <div className="space-y-3 max-h-64 overflow-y-auto">
+                                    {taskUpdates.length > 0 ? (
+                                        taskUpdates.map((update) => (
+                                            <div
+                                                key={update.id}
+                                                className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900"
+                                            >
+                                                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                                                    {update.update_text}
+                                                </p>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {update.created_at || 'Just now'}
+                                                        {update.user && ` • by ${update.user.name}`}
+                                                    </span>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                const editingId = currentData.editingUpdateId === update.id ? null : update.id;
+                                                                updateFormData("editingUpdateId", editingId);
+                                                                updateFormData("editUpdateText", editingId ? update.update_text : "");
+                                                            }}
+                                                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                                        >
+                                                            {currentData.editingUpdateId === update.id ? 'Cancel' : 'Edit'}
+                                                        </button>
+                                                        {currentData.editingUpdateId === update.id ? (
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (!currentData.editUpdateText?.trim()) {
+                                                                        toast.error("Update text cannot be empty");
+                                                                        return;
+                                                                    }
+                                                                    router.patch(route('task.updates.update', [currentTask?.id || task?.id, update.id]), {
+                                                                        update_text: currentData.editUpdateText,
+                                                                    }, {
+                                                                        preserveScroll: true,
+                                                                        preserveState: true,
+                                                                        onSuccess: () => {
+                                                                            toast.success("Update updated successfully!");
+                                                                            updateFormData("editingUpdateId", null);
+                                                                            updateFormData("editUpdateText", "");
+                                                                    // Reload updates
+                                                                    fetch(route('task.show', currentTask?.id || task?.id))
+                                                                        .then(res => res.json())
+                                                                        .then(data => {
+                                                                            if (data.task) {
+                                                                                setCurrentTask(data.task);
+                                                                                setTaskUpdates(data.task.updates || []);
+                                                                            }
+                                                                        })
+                                                                        .catch(() => {});
+                                                                    router.reload({ only: ['taskAll', 'completed'] });
+                                                                },
+                                                                onError: (errors) => {
+                                                                    const messages = Object.values(errors).flat().join(" ");
+                                                                    toast.error(messages || "Something went wrong");
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="text-xs text-green-600 dark:text-green-400 hover:underline"
+                                                    >
+                                                        Save
+                                                    </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (!confirm("Are you sure you want to delete this update?")) return;
+                                                                    router.delete(route('task.updates.destroy', [currentTask?.id || task?.id, update.id]), {
+                                                                        preserveScroll: true,
+                                                                        preserveState: true,
+                                                                        onSuccess: () => {
+                                                                            toast.success("Update deleted successfully!");
+                                                                    // Reload updates
+                                                                    fetch(route('task.show', currentTask?.id || task?.id))
+                                                                        .then(res => res.json())
+                                                                        .then(data => {
+                                                                            if (data.task) {
+                                                                                setCurrentTask(data.task);
+                                                                                setTaskUpdates(data.task.updates || []);
+                                                                            }
+                                                                        })
+                                                                        .catch(() => {});
+                                                                    router.reload({ only: ['taskAll', 'completed'] });
+                                                                },
+                                                                onError: (errors) => {
+                                                                    const messages = Object.values(errors).flat().join(" ");
+                                                                    toast.error(messages || "Something went wrong");
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {currentData.editingUpdateId === update.id && (
+                                                    <div className="mt-2">
+                                                        <PrimaryInput
+                                                            type="text"
+                                                            value={currentData.editUpdateText || ''}
+                                                            onChange={(e) => updateFormData("editUpdateText", e.target.value)}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    ) : (currentTask?.latest_update || task?.latest_update) ? (
+                                        <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900">
+                                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                                                {(currentTask?.latest_update || task?.latest_update).update_text}
+                                            </p>
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                {(currentTask?.latest_update || task?.latest_update).created_at || 'Just now'}
+                                                {(currentTask?.latest_update || task?.latest_update).user && ` • by ${(currentTask?.latest_update || task?.latest_update).user.name}`}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-500 dark:text-gray-400 text-sm italic">
+                                            No updates yet. Add an update to track task progress.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -437,7 +680,7 @@ export default function TaskDrawer({
                                     text="Edit Task"
                                     onClick={() => setIsEditMode(true)}
                                 />
-                                {task && (
+                                {(currentTask || task) && (
                                     <button
                                         onClick={handleDelete}
                                         className="flex-1 bg-red-600 text-white text-sm py-2.5 px-4 rounded cursor-pointer hover:bg-red-700 transition duration-300 font-medium"
