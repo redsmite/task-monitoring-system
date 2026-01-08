@@ -118,7 +118,7 @@ export default function Sidebar({ open, onClose, task }) {
 
                     <h1 className="text-3xl font-semibold">{currentTask?.name || task?.name}</h1>
 
-                    <div className="grid grid-cols-3 border border-gray-300 rounded overflow-hidden">
+                    <div className="grid grid-cols-2 border border-gray-300 rounded overflow-hidden">
                         <div className="min-h-44 p-3 flex flex-col border-r border-gray-300">
                             <div className="flex justify-center">
                                 <h1 className="text-md font-semibold">📅Due Date</h1>
@@ -128,6 +128,19 @@ export default function Sidebar({ open, onClose, task }) {
                                     bgcolor="bg-red-100"
                                 >
                                     {currentTask?.due_date || task?.due_date ? `${currentTask?.due_date || task?.due_date}` : "No due date set."}
+                                </DateContainer>
+                            </div>
+                        </div>
+
+                        <div className="min-h-44 p-3 flex flex-col border-r border-gray-300">
+                            <div className="flex justify-center">
+                                <h1 className="text-md font-semibold">📆Date Created</h1>
+                            </div>
+                            <div className="flex flex-1 justify-center items-center">
+                                <DateContainer
+                                    bgcolor="bg-blue-100"
+                                >
+                                    {currentTask?.created_at || task?.created_at ? `${currentTask?.created_at || task?.created_at}` : "N/A"}
                                 </DateContainer>
                             </div>
                         </div>

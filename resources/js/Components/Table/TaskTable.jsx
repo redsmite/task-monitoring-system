@@ -474,6 +474,9 @@ export default function TaskTable({
                 Due Date
             </TableHeader>
             <TableHeader>
+                Date Created
+            </TableHeader>
+            <TableHeader>
                 Priority
             </TableHeader>
             <ActionHeader>
@@ -501,7 +504,7 @@ export default function TaskTable({
                             onClick={() => ToggleAdd(tableType)}
                         >
                             <TableData
-                                colSpan="8"
+                                colSpan="9"
                                 className="cursor-pointer"
                             >
                                 ➕ Add Task
@@ -570,6 +573,11 @@ export default function TaskTable({
                                     value={addData.due_date}
                                     onChange={(date) => updateAddTaskData("due_date", formatDateToSave(date))}
                                 />
+                            </TableData>
+                            <TableData
+                                className="text-center text-gray-400 dark:text-gray-500"
+                            >
+                                N/A
                             </TableData>
                             <TableData>
                                 <SelectInput
@@ -684,6 +692,15 @@ export default function TaskTable({
                                     {task?.due_date}
                                 </DateContainer>
                             </TableData>
+                            <TableData
+                                className="text-center"
+                            >
+                                <DateContainer
+                                    bgcolor="bg-blue-200"
+                                >
+                                    {task?.created_at || 'N/A'}
+                                </DateContainer>
+                            </TableData>
                             <TableData>
                                 <PriorityContainer
                                     priority={task?.priority}
@@ -751,6 +768,15 @@ export default function TaskTable({
                                     value={editData?.due_date || task?.due_date || ''}
                                     onChange={(date) => updateEditTaskData("due_date", formatDateToSave(date))}
                                 />
+                            </TableData>
+                            <TableData
+                                className="text-center"
+                            >
+                                <DateContainer
+                                    bgcolor="bg-blue-200"
+                                >
+                                    {task?.created_at || 'N/A'}
+                                </DateContainer>
                             </TableData>
                             <TableData>
                                 <SelectInput
@@ -832,7 +858,7 @@ export default function TaskTable({
                             onClick={() => ToggleAdd(tableType)}
                         >
                             <TableData
-                                colSpan="8"
+                                colSpan="9"
                                 className="cursor-pointer"
                             >
                                 ➕ Add Task
@@ -901,6 +927,11 @@ export default function TaskTable({
                                     value={addData.due_date}
                                     onChange={(date) => updateAddTaskData("due_date", formatDateToSave(date))}
                                 />
+                            </TableData>
+                            <TableData
+                                className="text-center text-gray-400 dark:text-gray-500"
+                            >
+                                N/A
                             </TableData>
                             <TableData>
                                 <SelectInput

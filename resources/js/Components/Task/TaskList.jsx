@@ -68,6 +68,12 @@ export default function TaskList({
                                         {task.status}
                                     </StatusContainer>
                                 </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Date Created:</span>
+                                    <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                        {task?.created_at || 'N/A'}
+                                    </span>
+                                </div>
                                 <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                                     <span className="text-sm text-gray-600 dark:text-gray-400">Latest Update:</span>
                                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 line-clamp-2">

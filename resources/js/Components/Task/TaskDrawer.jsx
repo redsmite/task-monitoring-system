@@ -440,6 +440,12 @@ export default function TaskDrawer({
                                         {(currentTask?.due_date || task?.due_date) ? (currentTask?.due_date || task?.due_date) : "No due date set."}
                                     </DateContainer>
                                 </div>
+                                <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900">
+                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-4">📆 Date Created</h4>
+                                    <DateContainer bgcolor="bg-blue-100">
+                                        {(currentTask?.created_at || task?.created_at) ? (currentTask?.created_at || task?.created_at) : "N/A"}
+                                    </DateContainer>
+                                </div>
 
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
                                     <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">👤 Assigned To</h4>
