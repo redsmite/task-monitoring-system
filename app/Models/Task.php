@@ -30,9 +30,7 @@ class Task extends Model
             ->withTimestamps();
     }
 
-    // Task -> Division (singular for backward compatibility)
-    // Returns the first division from the many-to-many relationship
-    // Note: Use divisions() for multiple divisions, division() for backward compatibility
+    // Task -> Division
     public function getDivisionAttribute()
     {
         // If divisions are already loaded, return the first one
