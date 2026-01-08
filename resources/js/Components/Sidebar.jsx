@@ -94,7 +94,7 @@ export default function Sidebar({ open, onClose, task }) {
             />
 
             <div
-                className={`fixed top-0 right-0 h-full w-160 bg-white dark:bg-zinc-800 shadow-lg z-100
+                className={`fixed top-0 right-0 h-full w-160 bg-white dark:bg-zinc-800 shadow-lg z-100 overflow-auto
                     transform transition-transform duration-300 ease-in-out
                     ${open ? "translate-x-0" : "translate-x-full"}`}
             >
@@ -116,103 +116,102 @@ export default function Sidebar({ open, onClose, task }) {
                         </PriorityContainer>
                     </div>
 
-                    <h1 className="text-3xl font-semibold">{currentTask?.name || task?.name}</h1>
-
-                    <div className="grid grid-cols-2 border border-gray-300 rounded overflow-hidden">
-                        <div className="min-h-44 p-3 flex flex-col border-r border-gray-300">
-                            <div className="flex justify-center">
-                                <h1 className="text-md font-semibold">📅Due Date</h1>
-                            </div>
-                            <div className="flex flex-1 justify-center items-center">
-                                <DateContainer
-                                    bgcolor="bg-red-100"
-                                    textColor="text-gray-900 dark:text-gray-100"
-                                >
-                                    {currentTask?.due_date || task?.due_date ? `${currentTask?.due_date || task?.due_date}` : "No due date set."}
-                                </DateContainer>
-                            </div>
+                    <div>
+                        <div className="text-sm flex gap-2">
+                            <h1 className="text-sm">Created at</h1>
+                            <h1 className="text-sm">{currentTask?.created_at || task?.created_at}</h1>
                         </div>
+                        <h1 className="text-3xl font-semibold">{currentTask?.name || task?.name}</h1>
+                    </div>
 
-                        <div className="min-h-44 p-3 flex flex-col border-r border-gray-300">
-                            <div className="flex justify-center">
-                                <h1 className="text-md font-semibold">📆Date Created</h1>
-                            </div>
-                            <div className="flex flex-1 justify-center items-center">
-                                <DateContainer
-                                    bgcolor="bg-blue-100"
-                                >
-                                    {currentTask?.created_at || task?.created_at ? `${currentTask?.created_at || task?.created_at}` : "N/A"}
-                                </DateContainer>
-                            </div>
+                    <div
+                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition space-y-2"
+                    >
+                        <div className="flex justify-center">
+                            <h1 className="text-md font-semibold">📅Due Date</h1>
                         </div>
-
-                        <div className="min-h-44 p-3 flex flex-col border-r border-gray-300">
-                            <div className="flex justify-center">
-                                <h1 className="text-md font-semibold">👤Assigned To</h1>
-                            </div>
-                            <div className="flex flex-1 justify-center items-center">
-                                <p className="text-violet-500 font-semibold">{(currentTask?.employee || task?.employee) ? `${(currentTask?.employee || task?.employee).first_name} ${(currentTask?.employee || task?.employee).last_name}` : "Not assigned"}</p>
-                            </div>
-                        </div>
-
-                        <div className="min-h-44 p-3 flex flex-col">
-                            <div className="flex justify-center">
-                                <h1 className="text-md font-semibold">🔰Division</h1>
-                            </div>
-                            <div className="flex flex-1 justify-center items-center">
-                                <div className="flex flex-wrap gap-2 justify-center">
-                                    {(currentTask?.divisions || task?.divisions) && (currentTask?.divisions || task?.divisions).length > 0 ? (
-                                        (currentTask?.divisions || task?.divisions).map((division) => (
-                                            <DivisionContainer
-                                                key={division.id}
-                                                bgcolor={division.division_color}
-                                                compact={(currentTask?.divisions || task?.divisions).length > 2}
-                                            >
-                                                {division.division_name}
-                                            </DivisionContainer>
-                                        ))
-                                    ) : (currentTask?.division || task?.division) ? (
-                                        <DivisionContainer
-                                            bgcolor={(currentTask?.division || task?.division).division_color}
-                                        >
-                                            {(currentTask?.division || task?.division).division_name}
-                                        </DivisionContainer>
-                                    ) : (
-                                        <p className="text-gray-500 text-sm">No division</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            onClick={() => ToggleDescriptionEdit(currentTask || task)}
-                            className="group relative min-h-48 col-span-3 p-3 border-t border-gray-300 hover:bg-stone-200 dark:hover:bg-stone-700 cursor-pointer"
-                        >
-                            {editDescriptionId === (currentTask?.id || task?.id) ? (
-                                <textarea
-                                    value={descriptionValue}
-                                    onChange={(e) => setDescriptionValue(e.target.value)}
-                                    className="w-full h-full text-sm border rounded p-2"
-                                    onBlur={() => saveDescription(currentTask?.id || task?.id)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    autoFocus
-                                    maxLength={200}
-                                />
-                            ) : (
-                                <p className="text-sm text-gray-600 dark:text-gray-300 font-semibold italic max-w-full break-words">
-                                    {descriptionValue ? descriptionValue : "Add a short description or note."}
-                                </p>
-                            )}
-
-                            {editDescriptionId != (currentTask?.id || task?.id) && (
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition flex items-end justify-end p-2">
-                                    <span className="text-xs text-gray-600 bg-white dark:text-white dark:bg-zinc-800 px-2 py-1 rounded shadow">
-                                        ✏️ Edit Description
-                                    </span>
-                                </div>
-                            )}
+                        <div className="flex flex-1 justify-center items-center">
+                            <DateContainer
+                                bgcolor="bg-red-100"
+                                textColor="text-red-600"
+                            >
+                                {currentTask?.due_date || task?.due_date ? `${currentTask?.due_date || task?.due_date}` : "No due date set."}
+                            </DateContainer>
                         </div>
                     </div>
+
+                    <div
+                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition space-y-2"
+                    >
+                        <div className="flex justify-center">
+                            <h1 className="text-md font-semibold">👤Assigned To</h1>
+                        </div>
+                        <div className="flex flex-1 justify-center items-center">
+                            <p className="text-violet-500 font-semibold">{(currentTask?.employee || task?.employee) ? `${(currentTask?.employee || task?.employee).first_name} ${(currentTask?.employee || task?.employee).last_name}` : "Not assigned"}</p>
+                        </div>
+                    </div>
+
+                    <div
+                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition space-y-2"
+                    >
+                        <div className="flex justify-center">
+                            <h1 className="text-md font-semibold">🔰Division</h1>
+                        </div>
+                        <div className="flex flex-1 justify-center items-center">
+                            <div className="flex flex-wrap gap-2 justify-center">
+                                {(currentTask?.divisions || task?.divisions) && (currentTask?.divisions || task?.divisions).length > 0 ? (
+                                    (currentTask?.divisions || task?.divisions).map((division) => (
+                                        <DivisionContainer
+                                            key={division.id}
+                                            bgcolor={division.division_color}
+                                            compact={(currentTask?.divisions || task?.divisions).length > 2}
+                                        >
+                                            {division.division_name}
+                                        </DivisionContainer>
+                                    ))
+                                ) : (currentTask?.division || task?.division) ? (
+                                    <DivisionContainer
+                                        bgcolor={(currentTask?.division || task?.division).division_color}
+                                    >
+                                        {(currentTask?.division || task?.division).division_name}
+                                    </DivisionContainer>
+                                ) : (
+                                    <p className="text-gray-500 text-sm">No division</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div
+                        onClick={() => ToggleDescriptionEdit(currentTask || task)}
+                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition space-y-2"
+                    >
+                        {editDescriptionId === (currentTask?.id || task?.id) ? (
+                            <textarea
+                                value={descriptionValue}
+                                onChange={(e) => setDescriptionValue(e.target.value)}
+                                className="w-full h-full text-sm border rounded p-2"
+                                onBlur={() => saveDescription(currentTask?.id || task?.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                autoFocus
+                                maxLength={200}
+                            />
+                        ) : (
+                            <p className="text-sm text-gray-600 dark:text-gray-300 font-semibold italic max-w-full break-words">
+                                {descriptionValue ? descriptionValue : "Add a short description or note."}
+                            </p>
+                        )}
+
+                        {editDescriptionId != (currentTask?.id || task?.id) && (
+                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition flex items-end justify-end p-2">
+                                <span className="text-xs text-gray-600 bg-white dark:text-white dark:bg-zinc-800 px-2 py-1 rounded shadow">
+                                    ✏️ Edit Description
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
 
                     {/* Task History/Updates */}
                     <div className="space-y-4">
@@ -262,7 +261,7 @@ export default function Sidebar({ open, onClose, task }) {
                                                                 setUpdates(data.task.updates || []);
                                                             }
                                                         })
-                                                        .catch(() => {});
+                                                        .catch(() => { });
                                                     router.reload({ only: ['taskAll', 'completed'] });
                                                 },
                                                 onError: (errors) => {
@@ -330,7 +329,7 @@ export default function Sidebar({ open, onClose, task }) {
                                                                                 setUpdates(data.task.updates || []);
                                                                             }
                                                                         })
-                                                                        .catch(() => {});
+                                                                        .catch(() => { });
                                                                     router.reload({ only: ['taskAll', 'completed'] });
                                                                 },
                                                                 onError: (errors) => {
@@ -388,7 +387,7 @@ export default function Sidebar({ open, onClose, task }) {
                                                                                     setUpdates(data.task.updates || []);
                                                                                 }
                                                                             })
-                                                                            .catch(() => {});
+                                                                            .catch(() => { });
                                                                         router.reload({ only: ['taskAll', 'completed'] });
                                                                     },
                                                                     onError: (errors) => {
