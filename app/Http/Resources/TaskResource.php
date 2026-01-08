@@ -44,6 +44,13 @@ class TaskResource extends JsonResource
                 'division_name' => $this->division->division_name,
                 'division_color' => $this->division->division_color,
             ] : null,
+            'divisions' => $this->divisions->map(function ($division) {
+                return [
+                    'id' => $division->id,
+                    'division_name' => $division->division_name,
+                    'division_color' => $division->division_color,
+                ];
+            }),
 
             'employee' => $this->employee ? [
                 'id' => $this->employee->id,

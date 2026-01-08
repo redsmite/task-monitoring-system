@@ -11,6 +11,7 @@ import DivisionContainer from '../Misc/DivisionContainer';
 import Pagination from "../Misc/Pagination";
 import PrimaryInput from "../Form/PrimaryInput";
 import SelectInput from "../Form/SelectInput";
+import MultiSelectInput from "../Form/MultiSelectInput";
 import Datepicker from '../Form/Datepicker';
 import IconButton from '../Button/IconButton';
 import { format, parse } from 'date-fns';
@@ -263,10 +264,17 @@ export default function TaskTable({
             const next = { [task.id]: true };
 
             // Seed form data when opening
+            // Handle both old format (single division) and new format (array of divisions)
+            const divisionIds = task.divisions && task.divisions.length > 0
+                ? task.divisions.map(d => String(d.id))
+                : task.division?.id 
+                    ? [String(task.division.id)]
+                    : [];
+
             setEditData({
                 task_name: task.name || '',
                 assignee: task.employee?.id ? String(task.employee.id) : '',
-                division: task.division?.id ? String(task.division.id) : '',
+                division: divisionIds,
                 last_action: task.last_action || '',
                 status: formatStatusToDb(task.status) || '',
                 priority: formatPriorityToDb(task.priority) || '',
@@ -448,19 +456,12 @@ export default function TaskTable({
                                 </SelectInput>
                             </TableData>
                             <TableData>
-                                <SelectInput
-                                    placeholder="Select Division"
-                                    value={addData.division}
+                                <MultiSelectInput
+                                    placeholder="Select Division(s)"
+                                    options={divisions_data}
+                                    value={Array.isArray(addData.division) ? addData.division : addData.division ? [addData.division] : []}
                                     onChange={(value) => updateAddTaskData("division", value)}
-
-                                >
-                                    {divisions_data.map((division) => (
-                                        <SelectItem key={division.id} value={String(division.id)}>
-                                            {division.division_name}
-                                        </SelectItem>
-                                    ))}
-
-                                </SelectInput>
+                                />
                             </TableData>
                             <TableData>
                                 <PrimaryInput
@@ -548,11 +549,25 @@ export default function TaskTable({
                             <TableData
                                 className="text-center"
                             >
-                                <DivisionContainer
-                                    bgcolor={task?.division?.division_color}
-                                >
-                                    {task?.division?.division_name}
-                                </DivisionContainer>
+                                <div className="flex flex-wrap gap-1 sm:gap-2 justify-center items-center">
+                                    {task?.divisions && task.divisions.length > 0 ? (
+                                        task.divisions.map((division) => (
+                                            <DivisionContainer
+                                                key={division.id}
+                                                bgcolor={division.division_color}
+                                                compact={task.divisions.length > 2}
+                                            >
+                                                {division.division_name}
+                                            </DivisionContainer>
+                                        ))
+                                    ) : task?.division ? (
+                                        <DivisionContainer
+                                            bgcolor={task.division.division_color}
+                                        >
+                                            {task.division.division_name}
+                                        </DivisionContainer>
+                                    ) : null}
+                                </div>
                             </TableData>
                             <TableData>
                                 {task?.last_action}
@@ -616,19 +631,12 @@ export default function TaskTable({
                                 </SelectInput>
                             </TableData>
                             <TableData>
-                                <SelectInput
-                                    placeholder="Select Division"
-                                    defaultValue={editData?.division || (task?.division?.id ? String(task.division.id) : undefined)}
+                                <MultiSelectInput
+                                    placeholder="Select Division(s)"
+                                    options={divisions_data}
+                                    value={Array.isArray(editData?.division) ? editData.division : editData?.division ? [editData.division] : (task?.divisions && task.divisions.length > 0 ? task.divisions.map(d => String(d.id)) : task?.division?.id ? [String(task.division.id)] : [])}
                                     onChange={(value) => updateEditTaskData("division", value)}
-
-                                >
-                                    {divisions_data.map((division) => (
-                                        <SelectItem key={division.id} value={String(division.id)}>
-                                            {division.division_name}
-                                        </SelectItem>
-                                    ))}
-
-                                </SelectInput>
+                                />
                             </TableData>
                             <TableData>
                                 <PrimaryInput
@@ -771,19 +779,12 @@ export default function TaskTable({
                                 </SelectInput>
                             </TableData>
                             <TableData>
-                                <SelectInput
-                                    placeholder="Select Division"
-                                    value={addData.division}
+                                <MultiSelectInput
+                                    placeholder="Select Division(s)"
+                                    options={divisions_data}
+                                    value={Array.isArray(addData.division) ? addData.division : addData.division ? [addData.division] : []}
                                     onChange={(value) => updateAddTaskData("division", value)}
-
-                                >
-                                    {divisions_data.map((division) => (
-                                        <SelectItem key={division.id} value={String(division.id)}>
-                                            {division.division_name}
-                                        </SelectItem>
-                                    ))}
-
-                                </SelectInput>
+                                />
                             </TableData>
                             <TableData>
                                 <PrimaryInput

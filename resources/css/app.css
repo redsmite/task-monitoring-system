@@ -186,4 +186,67 @@
   .dark .drawer-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgb(107 114 128);
   }
+  
+  /* Touch optimization for mobile */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Modern transparent scrollbar for MultiSelect */
+  .multiselect-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+  
+  .multiselect-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+    margin: 4px 0;
+  }
+  
+  .multiselect-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    border: none;
+    transition: all 0.2s ease;
+  }
+  
+  .multiselect-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
+    width: 6px;
+  }
+  
+  .multiselect-scrollbar::-webkit-scrollbar-thumb:active {
+    background: rgba(0, 0, 0, 0.35);
+  }
+  
+  /* Dark mode transparent scrollbar */
+  .dark .multiselect-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  .dark .multiselect-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  
+  .dark .multiselect-scrollbar::-webkit-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.35);
+  }
+  
+  /* Firefox scrollbar styling */
+  .multiselect-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  }
+  
+  .dark .multiselect-scrollbar {
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
+  
+  /* Mobile-friendly popover positioning */
+  @media (max-width: 640px) {
+    [data-radix-popper-content-wrapper] {
+      max-width: calc(100vw - 1rem) !important;
+    }
+  }
 }

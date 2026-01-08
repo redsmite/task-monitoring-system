@@ -48,7 +48,7 @@ class TaskController extends Controller
                             $empQuery->where('first_name', 'like', '%' . $search . '%')
                                 ->orWhere('last_name', 'like', '%' . $search . '%');
                         })
-                        ->orWhereHas('division', function ($divQuery) use ($search) {
+                        ->orWhereHas('divisions', function ($divQuery) use ($search) {
                             $divQuery->where('division_name', 'like', '%' . $search . '%');
                         });
                 });
@@ -57,14 +57,14 @@ class TaskController extends Controller
         };
 
         $taskAll = $applySearch(
-            Task::with('division', 'employee')
+            Task::with('divisions', 'employee')
                 ->whereIn('status', ['not_started', 'in_progress'])
                 ->orderBy('created_at', $taskAllSort),
             $taskAllSearch
         )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
 
         $completed = $applySearch(
-            Task::with('division', 'employee')
+            Task::with('divisions', 'employee')
                 ->where('status', 'completed')
                 ->orderBy('created_at', $completedSort),
             $completedSearch
@@ -119,7 +119,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'task_name' => 'required|string|max:255',
             'assignee' => 'required|string|max:255',
-            'division' => 'required|string|max:255',
+            'division' => 'required', // Can be string or array
             'last_action' => 'nullable|string|max:255',
             'status' => 'required|string|max:255',
             'priority' => 'nullable|string|max:255',
@@ -131,9 +131,15 @@ class TaskController extends Controller
             ? intval($validated['assignee'])
             : null;
 
-        $divisionId = !empty($validated['division'])
-            ? intval($validated['division'])
-            : null;
+        // Handle divisions - can be single value or array
+        $divisionIds = [];
+        if (!empty($validated['division'])) {
+            if (is_array($validated['division'])) {
+                $divisionIds = array_filter(array_map('intval', $validated['division']));
+            } else {
+                $divisionIds = [intval($validated['division'])];
+            }
+        }
 
         // Normalize due_date to avoid timezone issues - set to start of day
         $dueDate = null;
@@ -149,13 +155,17 @@ class TaskController extends Controller
         $task = Task::create([
             'name' => $validated['task_name'],
             'employee_id' => $employeeId,
-            'division_id' => $divisionId,
             'last_action' => $validated['last_action'] ?? null,
             'status' => $validated['status'] ?? null,
             'priority' => $validated['priority'] ?? null,
             'due_date' => $dueDate,
             'description' => $validated['description'] ?? null,
         ]);
+
+        // Attach divisions to task
+        if (!empty($divisionIds)) {
+            $task->divisions()->sync($divisionIds);
+        }
 
         // Log activity
         Activity::create([
@@ -232,7 +242,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'task_name' => 'sometimes|required|string|max:255',
             'assignee' => 'sometimes|nullable|string|max:255',
-            'division' => 'sometimes|nullable|string|max:255',
+            'division' => 'sometimes|nullable', // Can be string, array, or null
             'last_action' => 'sometimes|nullable|string|max:255',
             'status' => 'sometimes|nullable|string|max:255',
             'priority' => 'sometimes|nullable|string|max:255',
@@ -244,14 +254,21 @@ class TaskController extends Controller
             ? intval($validated['assignee'])
             : null;
 
-        $divisionId = !empty($validated['division'])
-            ? intval($validated['division'])
-            : null;
+        // Handle divisions - can be single value, array, or null
+        $divisionIds = [];
+        if (!empty($validated['division'])) {
+            if (is_array($validated['division'])) {
+                $divisionIds = array_filter(array_map('intval', $validated['division']));
+            } else {
+                $divisionIds = [intval($validated['division'])];
+            }
+        }
 
         // Get original values for change tracking
         $original = $task->getOriginal();
+        $originalDivisionIds = $task->divisions->pluck('id')->toArray();
 
-        // Prepare new values
+        // Prepare new values (excluding division_id)
         // Normalize due_date to avoid timezone issues - set to start of day in app timezone
         $dueDate = null;
         if (!empty($validated['due_date'])) {
@@ -266,7 +283,6 @@ class TaskController extends Controller
         $newValues = [
             'name' => $validated['task_name'],
             'employee_id' => $employeeId,
-            'division_id' => $divisionId,
             'last_action' => $validated['last_action'] ?? null,
             'status' => $validated['status'] ?? null,
             'priority' => $validated['priority'] ?? null,
@@ -353,23 +369,6 @@ class TaskController extends Controller
                     } else {
                         $toValue = 'N/A';
                     }
-                } elseif ($key === 'division_id') {
-                    $displayKey = 'division';
-                    // Resolve original division name
-                    if ($originalValue) {
-                        $originalDivision = Division::find($originalValue);
-                        $fromValue = $originalDivision ? $originalDivision->division_name : 'N/A';
-                    } else {
-                        $fromValue = 'N/A';
-                    }
-
-                    // Resolve new division name
-                    if ($newValue) {
-                        $newDivision = Division::find($newValue);
-                        $toValue = $newDivision ? $newDivision->division_name : 'N/A';
-                    } else {
-                        $toValue = 'N/A';
-                    }
                 }
 
                 $changes[$displayKey] = [
@@ -379,7 +378,23 @@ class TaskController extends Controller
             }
         }
 
+        // Handle division changes separately
+        sort($originalDivisionIds);
+        sort($divisionIds);
+        if ($originalDivisionIds !== $divisionIds) {
+            $originalDivisionNames = Division::whereIn('id', $originalDivisionIds)->pluck('division_name')->toArray();
+            $newDivisionNames = Division::whereIn('id', $divisionIds)->pluck('division_name')->toArray();
+            
+            $changes['division'] = [
+                'from' => !empty($originalDivisionNames) ? implode(', ', $originalDivisionNames) : 'N/A',
+                'to' => !empty($newDivisionNames) ? implode(', ', $newDivisionNames) : 'N/A',
+            ];
+        }
+
         $task->update($newValues);
+
+        // Sync divisions
+        $task->divisions()->sync($divisionIds);
 
         // Log activity
         Activity::create([

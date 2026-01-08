@@ -3,6 +3,7 @@ import { SelectItem } from "@/Components/ui/select";
 import { toast } from 'sonner';
 import PrimaryInput from '../Form/PrimaryInput';
 import SelectInput from '../Form/SelectInput';
+import MultiSelectInput from '../Form/MultiSelectInput';
 import Datepicker from '../Form/Datepicker';
 import PrimaryButton from '../Button/PrimaryButton';
 import StatusContainer from '../Misc/StatusContainer';
@@ -117,10 +118,17 @@ export default function TaskDrawer({
                 }
             }
 
+            // Handle both old format (single division) and new format (array of divisions)
+            const divisionIds = task.divisions && task.divisions.length > 0
+                ? task.divisions.map(d => String(d.id))
+                : task.division?.id 
+                    ? [String(task.division.id)]
+                    : [];
+
             setEditData({
                 task_name: task.name || '',
                 assignee: task.employee?.id ? String(task.employee.id) : '',
-                division: task.division?.id ? String(task.division.id) : '',
+                division: divisionIds,
                 last_action: task.last_action || '',
                 status: formatStatusToDb(task.status) || '',
                 priority: formatPriorityToDb(task.priority) || '',
@@ -269,19 +277,14 @@ export default function TaskDrawer({
                                 ))}
                             </SelectInput>
 
-                            <SelectInput
+                            <MultiSelectInput
                                 label="Division"
-                                placeholder="Select Division"
-                                value={currentData.division}
+                                placeholder="Select Division(s)"
+                                options={divisions_data}
+                                value={Array.isArray(currentData.division) ? currentData.division : currentData.division ? [currentData.division] : []}
                                 onChange={(value) => updateFormData("division", value)}
                                 error={currentErrors?.division}
-                            >
-                                {divisions_data.map((division) => (
-                                    <SelectItem key={division.id} value={String(division.id)}>
-                                        {division.division_name}
-                                    </SelectItem>
-                                ))}
-                            </SelectInput>
+                            />
 
                             <PrimaryInput
                                 type="text"
@@ -398,8 +401,20 @@ export default function TaskDrawer({
                                 </div>
 
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
-                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-4">🔰 Division</h4>
-                                    {task?.division ? (
+                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 sm:mb-4">🔰 Division</h4>
+                                    {task?.divisions && task.divisions.length > 0 ? (
+                                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                                            {task.divisions.map((division) => (
+                                                <DivisionContainer 
+                                                    key={division.id} 
+                                                    bgcolor={division.division_color}
+                                                    compact={task.divisions.length > 3}
+                                                >
+                                                    {division.division_name}
+                                                </DivisionContainer>
+                                            ))}
+                                        </div>
+                                    ) : task?.division ? (
                                         <DivisionContainer bgcolor={task.division.division_color}>
                                             {task.division.division_name}
                                         </DivisionContainer>
