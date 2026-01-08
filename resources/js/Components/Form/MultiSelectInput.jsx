@@ -76,14 +76,25 @@ export default function MultiSelectInput({
                                         <span className="truncate max-w-[80px] sm:max-w-none">
                                             {option.division_name || option.name || String(option.id)}
                                         </span>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => handleRemove(e, String(option.id))}
-                                            className="ml-0.5 sm:ml-1 hover:bg-primary/20 active:bg-primary/30 rounded-full p-0.5 sm:p-0.5 flex-shrink-0 touch-manipulation min-w-[20px] min-h-[20px] flex items-center justify-center"
+                                        <span
+                                            role="button"
+                                            tabIndex={0}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRemove(e, String(option.id));
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    handleRemove(e, String(option.id));
+                                                }
+                                            }}
+                                            className="ml-0.5 sm:ml-1 hover:bg-primary/20 active:bg-primary/30 rounded-full p-0.5 sm:p-0.5 flex-shrink-0 touch-manipulation min-w-[20px] min-h-[20px] flex items-center justify-center cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/50"
                                             aria-label={`Remove ${option.division_name || option.name}`}
                                         >
                                             <X className="h-3 w-3 sm:h-3 sm:w-3" />
-                                        </button>
+                                        </span>
                                     </span>
                                 ))
                             ) : (
