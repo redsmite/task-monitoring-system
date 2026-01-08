@@ -31,6 +31,9 @@ class TaskController extends Controller
         $taskAllSearch = $request->get('task_all_search', '');
         $completedSearch = $request->get('completed_search', '');
 
+        // Get status filter for task_all
+        $taskAllStatusFilter = $request->get('task_all_status', '');
+
         // Get sort order for each table (asc or desc, default to desc)
         $taskAllSort = $request->get('task_all_sort', 'desc');
         $completedSort = $request->get('completed_sort', 'desc');
@@ -38,6 +41,12 @@ class TaskController extends Controller
         // Validate sort order
         $taskAllSort = in_array($taskAllSort, ['asc', 'desc']) ? $taskAllSort : 'desc';
         $completedSort = in_array($completedSort, ['asc', 'desc']) ? $completedSort : 'desc';
+
+        // Validate status filter (treat 'all' as empty/no filter)
+        $taskAllStatusFilter = in_array($taskAllStatusFilter, ['in_progress', 'not_started', 'all', '']) ? $taskAllStatusFilter : '';
+        if ($taskAllStatusFilter === 'all') {
+            $taskAllStatusFilter = '';
+        }
 
         // Helper function to apply search
         $applySearch = function ($query, $search) {
@@ -60,10 +69,17 @@ class TaskController extends Controller
             return $query;
         };
 
+        // Build taskAll query
+        $taskAllQuery = Task::with('divisions', 'employee', 'latestUpdate')
+            ->whereIn('status', ['not_started', 'in_progress']);
+        
+        // Apply status filter if provided
+        if (!empty($taskAllStatusFilter)) {
+            $taskAllQuery->where('status', $taskAllStatusFilter);
+        }
+        
         $taskAll = $applySearch(
-            Task::with('divisions', 'employee', 'latestUpdate')
-                ->whereIn('status', ['not_started', 'in_progress'])
-                ->orderBy('created_at', $taskAllSort),
+            $taskAllQuery->orderBy('created_at', $taskAllSort),
             $taskAllSearch
         )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
 

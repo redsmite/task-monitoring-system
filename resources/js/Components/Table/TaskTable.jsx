@@ -60,16 +60,28 @@ export default function TaskTable({
     let search = urlParams.get(`${tableType}_search`) || '';
     let sort = urlParams.get(`${tableType}_sort`) || 'desc';
     let page = urlParams.get(`${tableType}_page`) || 1;
+    let statusFilter = urlParams.get(`${tableType}_status`) || '';
 
     // Clean Sort Value
     if (sort !== 'asc' && sort !== 'desc') {
         sort = 'desc';
     }
 
+    // Clean Status Filter Value (only for task_all)
+    if (tableType === 'task_all' && statusFilter !== '' && statusFilter !== 'all' && statusFilter !== 'in_progress' && statusFilter !== 'not_started') {
+        statusFilter = 'all';
+    }
+    
+    // Default to 'all' if empty for task_all
+    if (tableType === 'task_all' && statusFilter === '') {
+        statusFilter = 'all';
+    }
+
     // State
     const [searchValues, setSearchValues] = useState(search || '');
     const [sortValues, setSortValues] = useState(sort || 'desc');
     const [pageValues, setPageValues] = useState(page || 1);
+    const [statusFilterValue, setStatusFilterValue] = useState(statusFilter || (tableType === 'task_all' ? 'all' : ''));
     const isInitialMount = useRef(true);
 
     // Set
@@ -82,11 +94,17 @@ export default function TaskTable({
         setSortValues(value);
     }
 
+    const handleStatusFilterChange = (value) => {
+        setStatusFilterValue(value);
+        setPageValues(1);
+    }
+
     // Effects
     useEffect(() => {
         const sortParam = `${tableType}_sort`;
         const searchParam = `${tableType}_search`;
         const pageParam = `${tableType}_page`;
+        const statusParam = `${tableType}_status`;
 
         const currentParams = Object.fromEntries(
             new URLSearchParams(window.location.search)
@@ -96,15 +114,21 @@ export default function TaskTable({
         const existingSort = currentParams[sortParam];
         const existingSearch = currentParams[searchParam];
         const existingPage = currentParams[pageParam];
+        const existingStatus = currentParams[statusParam];
 
         // On initial mount, handle the empty URL case
         if (isInitialMount.current) {
             isInitialMount.current = false;
 
             // If all params for this table already exist and match, skip update
+            // Normalize status: 'all' means no param in URL (undefined/empty)
+            const normalizedStatusFilter = (statusFilterValue === 'all' || !statusFilterValue) ? '' : statusFilterValue;
+            const normalizedExistingStatus = existingStatus || '';
+            
             if (existingSort === String(sortValues) &&
                 existingSearch === String(searchValues) &&
-                existingPage === String(pageValues)) {
+                existingPage === String(pageValues) &&
+                (tableType !== 'task_all' || normalizedExistingStatus === normalizedStatusFilter)) {
                 return; // Params already match, no need to update
             }
 
@@ -128,6 +152,11 @@ export default function TaskTable({
                         [pageParam]: pageValues,
                     };
 
+                    // Only add status filter for task_all (skip if 'all')
+                    if (tableType === 'task_all' && statusFilterValue && statusFilterValue !== 'all') {
+                        searchUrl[statusParam] = statusFilterValue;
+                    }
+
                     router.get(route('task.index'), searchUrl, {
                         preserveState: true,
                         preserveScroll: true,
@@ -142,13 +171,18 @@ export default function TaskTable({
         const sortChanged = existingSort !== String(sortValues);
         const searchChanged = existingSearch !== String(searchValues);
         const pageChanged = existingPage !== String(pageValues);
+        
+        // Normalize status: 'all' means no param in URL (undefined/empty)
+        const normalizedStatusFilter = (statusFilterValue === 'all' || !statusFilterValue) ? '' : statusFilterValue;
+        const normalizedExistingStatus = existingStatus || '';
+        const statusChanged = tableType === 'task_all' && normalizedExistingStatus !== normalizedStatusFilter;
 
         // Only update if something changed
-        if (!sortChanged && !searchChanged && !pageChanged) {
+        if (!sortChanged && !searchChanged && !pageChanged && !statusChanged) {
             return;
         }
 
-        // When sorting changes, preserve current page from URL if available
+        // When sorting or filtering changes, preserve current page from URL if available
         const pageToUse = existingPage || pageValues;
 
         const searchUrl = {
@@ -158,12 +192,22 @@ export default function TaskTable({
             [pageParam]: pageToUse,
         }
 
+        // Only add status filter for task_all (skip if 'all')
+        if (tableType === 'task_all') {
+            if (statusFilterValue && statusFilterValue !== 'all') {
+                searchUrl[statusParam] = statusFilterValue;
+            } else {
+                // Remove status param if 'all' or empty
+                delete searchUrl[statusParam];
+            }
+        }
+
         router.get(route('task.index'), searchUrl, {
             preserveState: true,
             preserveScroll: true,
             replace: true
         })
-    }, [sortValues, searchValues, pageValues, tableType]);
+    }, [sortValues, searchValues, pageValues, statusFilterValue, tableType]);
 
     // Table Adding //
     // State
@@ -360,9 +404,20 @@ export default function TaskTable({
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="flex-1 w-[22rem]"
             />
+            {tableType === 'task_all' && (
+                <SelectInput
+                    placeholder="Filter by Status"
+                    value={statusFilterValue || 'all'}
+                    onChange={(value) => handleStatusFilterChange(value)}
+                >
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="not_started">Not Started</SelectItem>
+                </SelectInput>
+            )}
             <SelectInput
                 placeholder="Sort Order"
-                value={sortValues}
+                value={sortValues || ''}
                 onChange={(value) => handleSortChange(value)}
             >
                 <SelectItem value="desc">Descending</SelectItem>
