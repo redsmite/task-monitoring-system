@@ -383,6 +383,33 @@ export default function TaskTable({
         return format(date, 'yyyy-MM-dd');
     }
 
+    // Check if task is overdue
+    const isTaskOverdue = (dueDate) => {
+        if (!dueDate) return false;
+        
+        try {
+            // Parse the date from "m/d/Y" format
+            const parsedDate = parse(dueDate, 'MM/dd/yyyy', new Date());
+            
+            // Check if parsing was successful
+            if (isNaN(parsedDate.getTime())) {
+                return false;
+            }
+            
+            // Get today's date at midnight for comparison
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Set the parsed date to midnight for accurate comparison
+            parsedDate.setHours(0, 0, 0, 0);
+            
+            // Return true if due date is before today
+            return parsedDate < today;
+        } catch (error) {
+            return false;
+        }
+    }
+
     // Formatting for displaying the add button
     // Sorting value
     const formattedSortValue = (sortValue) => {
@@ -585,11 +612,18 @@ export default function TaskTable({
                 </>
             )}
 
-            {data.map(task => (
+            {data.map(task => {
+                // Only apply overdue highlighting for task_all table, not completed
+                const isOverdue = tableType === 'task_all' ? isTaskOverdue(task?.due_date) : false;
+                const rowClassName = isEditActive[task.id] 
+                    ? (isOverdue ? 'bg-red-100 dark:bg-red-900/20' : '')
+                    : (isOverdue ? 'bg-red-100 dark:bg-red-900/20 cursor-pointer' : 'cursor-pointer');
+                
+                return (
                 <TableRow
                     key={task.id}
                     onClick={isEditActive[task.id] ? undefined : () => onRowClick(task)}
-                    className={isEditActive[task.id] ? '' : 'cursor-pointer'}
+                    className={rowClassName}
                 >
                     {!isEditActive[task.id] && (
                         <>
@@ -788,7 +822,8 @@ export default function TaskTable({
                         )}
                     </ActionData>
                 </TableRow>
-            ))}
+                );
+            })}
 
             {formattedSortValue(sortValues) === tableType + '_' + 'asc' && formattedLastPageValue(paginationLastPage) === tableType + '_page=' + page && (
                 <>
