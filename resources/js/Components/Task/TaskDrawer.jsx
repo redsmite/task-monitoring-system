@@ -7,6 +7,8 @@ import SelectInput from '../Form/SelectInput';
 import MultiSelectInput from '../Form/MultiSelectInput';
 import Datepicker from '../Form/Datepicker';
 import PrimaryButton from '../Button/PrimaryButton';
+import SecondaryButton from '../SecondaryButton';
+import DangerButton from '../DangerButton';
 import StatusContainer from '../Misc/StatusContainer';
 import PriorityContainer from '../Misc/PriorityContainer';
 import DivisionContainer from '../Misc/DivisionContainer';
@@ -392,9 +394,10 @@ export default function TaskDrawer({
                                     text={isAddModeActive ? "Add Task" : "Save Changes"}
                                     onClick={isAddModeActive ? saveAdd : saveEdit}
                                     disabled={currentProcessing}
-                                    className="inline-flex items-center justify-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700 focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-gray-900 cursor-pointer text-center"
+                                    className="flex-1"
                                 />
-                                <button
+                                <SecondaryButton
+                                    text="Cancel"
                                     onClick={() => {
                                         if (isAddModeActive) {
                                             resetAddData();
@@ -406,10 +409,8 @@ export default function TaskDrawer({
                                             resetEditData();
                                         }
                                     }}
-                                    className="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm py-2 px-4 rounded cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300"
-                                >
-                                    Cancel
-                                </button>
+                                    className="flex-1"
+                                />
                             </div>
                         </div>
                     ) : (
@@ -486,28 +487,34 @@ export default function TaskDrawer({
                             {/* Task History/Updates */}
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">History</h3>
-                                    <button
-                                        onClick={() => {
-                                            const currentShowAdd = !(currentData.showAddUpdate || false);
-                                            updateFormData("showAddUpdate", currentShowAdd);
-                                        }}
-                                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
-                                    >
-                                        {currentData.showAddUpdate ? 'Cancel' : '+ Add Update'}
-                                    </button>
+                                    <h3 className="text-lg font-semibold text-foreground">History</h3>
+                                    {!currentData.showAddUpdate && (
+                                        <PrimaryButton
+                                            text="+ Add Update"
+                                            onClick={() => {
+                                                updateFormData("showAddUpdate", true);
+                                            }}
+                                        />
+                                    )}
                                 </div>
 
                                 {/* Add New Update Form */}
                                 {currentData.showAddUpdate && (
-                                    <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900 space-y-3">
+                                    <div className="p-4 border border-input rounded-lg bg-card space-y-3">
                                         <PrimaryInput
                                             type="text"
                                             placeholder="Enter update..."
                                             value={currentData.newUpdateText || ''}
                                             onChange={(e) => updateFormData("newUpdateText", e.target.value)}
                                         />
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 justify-end">
+                                            <SecondaryButton
+                                                text="Cancel"
+                                                onClick={() => {
+                                                    updateFormData("showAddUpdate", false);
+                                                    updateFormData("newUpdateText", "");
+                                                }}
+                                            />
                                             <PrimaryButton
                                                 text="Save"
                                                 onClick={() => {
@@ -543,15 +550,6 @@ export default function TaskDrawer({
                                                     });
                                                 }}
                                             />
-                                            <button
-                                                onClick={() => {
-                                                    updateFormData("showAddUpdate", false);
-                                                    updateFormData("newUpdateText", "");
-                                                }}
-                                                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-                                            >
-                                                Cancel
-                                            </button>
                                         </div>
                                     </div>
                                 )}
@@ -691,12 +689,12 @@ export default function TaskDrawer({
                                     onClick={() => setIsEditMode(true)}
                                 />
                                 {(currentTask || task) && (
-                                    <button
+                                    <DangerButton
                                         onClick={handleDelete}
-                                        className="flex-1 bg-red-600 text-white text-sm py-2.5 px-4 rounded cursor-pointer hover:bg-red-700 transition duration-300 font-medium"
+                                        className="flex-1"
                                     >
                                         Delete Task
-                                    </button>
+                                    </DangerButton>
                                 )}
                             </div>
                         </>

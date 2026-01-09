@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 export default function SecondaryButton({
     type = 'button',
     className = '',
@@ -9,11 +11,26 @@ export default function SecondaryButton({
         <button
             {...props}
             type={type}
-            className={
-                `inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 cursor-pointer ${
-                    disabled && 'opacity-25'
-                } ` + className
-            }
+            className={cn(
+                // Base styles - consistent across all buttons
+                "inline-flex items-center justify-center gap-2",
+                "h-9 px-4 py-2",
+                "rounded",
+                "text-sm font-medium",
+                "whitespace-nowrap",
+                // Variant styles
+                "border border-input bg-secondary text-secondary-foreground",
+                "shadow-sm hover:bg-secondary/80",
+                // Interactive states
+                "transition-colors",
+                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "active:bg-secondary/70",
+                // Disabled state
+                "disabled:pointer-events-none disabled:opacity-50",
+                // Cursor
+                "cursor-pointer",
+                className
+            )}
             disabled={disabled}
         >
             {text}

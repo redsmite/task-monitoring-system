@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import PrimaryInput from '../Form/PrimaryInput';
 import SelectInput from '../Form/SelectInput';
 import PrimaryButton from '../Button/PrimaryButton';
+import SecondaryButton from '../SecondaryButton';
+import DangerButton from '../DangerButton';
 import DivisionContainer from '../Misc/DivisionContainer';
 
 export default function AssigneeDrawer({
@@ -223,8 +225,10 @@ export default function AssigneeDrawer({
                                     text={isAddModeActive ? "Add Assignee" : "Save Changes"}
                                     onClick={isAddModeActive ? saveAdd : saveEdit}
                                     disabled={currentProcessing}
+                                    className="flex-1"
                                 />
-                                <button
+                                <SecondaryButton
+                                    text="Cancel"
                                     onClick={() => {
                                         if (isAddModeActive) {
                                             resetAddData();
@@ -236,10 +240,8 @@ export default function AssigneeDrawer({
                                             resetEditData();
                                         }
                                     }}
-                                    className="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm py-2 px-4 rounded cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300"
-                                >
-                                    Cancel
-                                </button>
+                                    className="flex-1"
+                                />
                             </div>
                         </div>
                     ) : (
@@ -273,12 +275,12 @@ export default function AssigneeDrawer({
                                     onClick={() => setIsEditMode(true)}
                                 />
                                 {assignee && (
-                                    <button
+                                    <DangerButton
                                         onClick={handleDelete}
-                                        className="flex-1 bg-red-600 text-white text-sm py-2.5 px-4 rounded cursor-pointer hover:bg-red-700 transition duration-300 font-medium"
+                                        className="flex-1"
                                     >
                                         Delete Assignee
-                                    </button>
+                                    </DangerButton>
                                 )}
                             </div>
                         </>

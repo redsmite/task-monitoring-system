@@ -1,9 +1,28 @@
+import { cn } from "@/lib/utils";
+
 export default function PrimaryButton({ text, onClick, disabled, className=""}) {
     return (
         <button
-            className={`${className ? className : 'inline-flex items-center justify-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700 focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-gray-900 cursor-pointer text-center'} ${
-                disabled && 'opacity-25 cursor-not-allowed'
-            }`}
+            className={cn(
+                // Base styles - consistent across all buttons
+                "inline-flex items-center justify-center gap-2",
+                "h-9 px-4 py-2",
+                "rounded border border-transparent",
+                "text-sm font-medium",
+                "whitespace-nowrap",
+                // Variant styles
+                "bg-primary text-primary-foreground",
+                "shadow hover:bg-primary/90",
+                // Interactive states
+                "transition-colors",
+                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "active:bg-primary/80",
+                // Disabled state
+                "disabled:pointer-events-none disabled:opacity-50",
+                // Cursor
+                "cursor-pointer",
+                className
+            )}
             onClick={onClick}
             disabled={disabled}
         >
