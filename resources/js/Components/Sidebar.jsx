@@ -7,6 +7,7 @@ import DivisionContainer from "./Misc/DivisionContainer";
 import DateContainer from "./Misc/DateContainer";
 import PrimaryInput from "./Form/PrimaryInput";
 import PrimaryButton from "./Button/PrimaryButton";
+import SecondaryButton from "./SecondaryButton";
 
 export default function Sidebar({ open, onClose, task }) {
 
@@ -183,46 +184,70 @@ export default function Sidebar({ open, onClose, task }) {
                     </div>
 
 
-                    <div
-                        onClick={() => ToggleDescriptionEdit(currentTask || task)}
-                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition space-y-2"
-                    >
-                        {editDescriptionId === (currentTask?.id || task?.id) ? (
-                            <textarea
-                                value={descriptionValue}
-                                onChange={(e) => setDescriptionValue(e.target.value)}
-                                className="w-full h-full text-sm border rounded p-2"
-                                onBlur={() => saveDescription(currentTask?.id || task?.id)}
-                                onClick={(e) => e.stopPropagation()}
-                                autoFocus
-                                maxLength={200}
-                            />
-                        ) : (
-                            <p className="text-sm text-gray-600 dark:text-gray-300 font-semibold italic max-w-full break-words">
-                                {descriptionValue ? descriptionValue : "Add a short description or note."}
-                            </p>
-                        )}
-
-                        {editDescriptionId != (currentTask?.id || task?.id) && (
-                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition flex items-end justify-end p-2">
-                                <span className="text-xs text-gray-600 bg-white dark:text-white dark:bg-zinc-800 px-2 py-1 rounded shadow">
-                                    ✏️ Edit Description
-                                </span>
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-3xl font-semibold">Description</h1>
+                        {editDescriptionId !== (currentTask?.id || task?.id) ? (
+                            <div className="w-auto">
+                                <PrimaryButton
+                                    text="✏️ Edit Description"
+                                    onClick={() => ToggleDescriptionEdit(currentTask || task)}
+                                />
                             </div>
+                        ) : (
+                            <SecondaryButton
+                                text="Cancel"
+                                onClick={() => {
+                                    setEditDescriptionId(null);
+                                    setDescriptionValue(currentTask?.description || task?.description || "");
+                                }}
+                            />
                         )}
                     </div>
-
+                    <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 space-y-3">
+                        <div>
+                            {editDescriptionId === (currentTask?.id || task?.id) ? (
+                                <div className="space-y-2">
+                                    <textarea
+                                        value={descriptionValue}
+                                        onChange={(e) => setDescriptionValue(e.target.value)}
+                                        className="w-full h-full text-sm border rounded p-2 resize-none"
+                                        autoFocus
+                                        maxLength={200}
+                                        rows={4}
+                                    />
+                                    <div className="flex gap-2">
+                                        <PrimaryButton
+                                            text="Save"
+                                            onClick={() => saveDescription(currentTask?.id || task?.id)}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-600 dark:text-gray-300 font-semibold italic max-w-full break-words">
+                                    {descriptionValue ? descriptionValue : "Add a short description or note."}
+                                </p>
+                            )}
+                        </div>
+                    </div>
 
                     {/* Task History/Updates */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h1 className="text-3xl font-semibold">History</h1>
-                            <button
-                                onClick={() => setShowAddUpdate(!showAddUpdate)}
-                                className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
-                            >
-                                {showAddUpdate ? 'Cancel' : '+ Add Update'}
-                            </button>
+                            {!showAddUpdate ? (
+                                <PrimaryButton
+                                    text="➕ Add Update"
+                                    onClick={() => setShowAddUpdate(!showAddUpdate)}
+                                />
+                            ) : (
+                                <SecondaryButton
+                                    text="Cancel"
+                                    onClick={() => {
+                                        setShowAddUpdate(false);
+                                        setNewUpdateText("");
+                                    }}
+                                />
+                            )}
                         </div>
 
                         {/* Add New Update Form */}
@@ -271,15 +296,6 @@ export default function Sidebar({ open, onClose, task }) {
                                             });
                                         }}
                                     />
-                                    <button
-                                        onClick={() => {
-                                            setShowAddUpdate(false);
-                                            setNewUpdateText("");
-                                        }}
-                                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-                                    >
-                                        Cancel
-                                    </button>
                                 </div>
                             </div>
                         )}
@@ -303,9 +319,8 @@ export default function Sidebar({ open, onClose, task }) {
                                                     value={editUpdateText}
                                                     onChange={(e) => setEditUpdateText(e.target.value)}
                                                 />
-                                                <div className="flex gap-2">
-                                                    <PrimaryButton
-                                                        text="Save"
+                                                <div className="flex justify-end gap-2">
+                                                    <button
                                                         onClick={() => {
                                                             if (!editUpdateText.trim()) {
                                                                 toast.error("Update text cannot be empty");
@@ -338,13 +353,17 @@ export default function Sidebar({ open, onClose, task }) {
                                                                 }
                                                             });
                                                         }}
-                                                    />
+
+                                                        className="py-2 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-slate-700 rounded cursor-pointer"
+                                                    >
+                                                        Save Changes
+                                                    </button>
                                                     <button
                                                         onClick={() => {
                                                             setEditingUpdateId(null);
                                                             setEditUpdateText("");
                                                         }}
-                                                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                                                        className="py-2 px-2 text-xs text-gray-600 dark:text-gray-200 hover:bg-gray-700 rounded cursor-pointer"
                                                     >
                                                         Cancel
                                                     </button>
@@ -360,13 +379,13 @@ export default function Sidebar({ open, onClose, task }) {
                                                         {update.created_at || 'Just now'}
                                                         {update.user && ` • by ${update.user.name}`}
                                                     </span>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex">
                                                         <button
                                                             onClick={() => {
                                                                 setEditingUpdateId(update.id);
                                                                 setEditUpdateText(update.update_text);
                                                             }}
-                                                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                                            className="py-2 px-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-slate-700 rounded cursor-pointer"
                                                         >
                                                             Edit
                                                         </button>
@@ -396,7 +415,7 @@ export default function Sidebar({ open, onClose, task }) {
                                                                     }
                                                                 });
                                                             }}
-                                                            className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                                                            className="p-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded cursor-pointer"
                                                         >
                                                             Delete
                                                         </button>
