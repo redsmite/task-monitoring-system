@@ -7,7 +7,7 @@ import {
     PaginationLink,
     PaginationNext,
     PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@/Components/ui/pagination"
 
 export default function Pagination({ links = [], current_page = 1, per_page = 7, total = 0, last_page = 1, tableType = '' }) {
     if (!links || links.length === 0) {

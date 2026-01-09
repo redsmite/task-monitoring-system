@@ -13,7 +13,6 @@ class Task extends Model
         'name',
         'description',
         'employee_id',
-        'division_id',
         'last_action',
         'status',
         'priority',
@@ -24,16 +23,39 @@ class Task extends Model
         'due_date' => 'datetime',
     ];
 
+    // Task -> Divisions (many-to-many)
+    public function divisions()
+    {
+        return $this->belongsToMany(Division::class, 'task_division', 'task_id', 'division_id')
+            ->withTimestamps();
+    }
 
     // Task -> Division
-    public function division()
+    public function getDivisionAttribute()
     {
-        return $this->belongsTo(Division::class);
+        // If divisions are already loaded, return the first one
+        if ($this->relationLoaded('divisions')) {
+            return $this->getRelation('divisions')->first();
+        }
+        // Otherwise, lazy load the first division
+        return $this->divisions()->first();
     }
 
     // Task -> Employee
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    // Task -> Updates (History)
+    public function updates()
+    {
+        return $this->hasMany(TaskUpdate::class)->orderBy('created_at', 'desc');
+    }
+
+    // Task -> Latest Update
+    public function latestUpdate()
+    {
+        return $this->hasOne(TaskUpdate::class)->latestOfMany();
     }
 }

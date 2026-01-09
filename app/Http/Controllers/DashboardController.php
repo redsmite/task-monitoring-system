@@ -19,31 +19,31 @@ class DashboardController extends Controller
         $totalTasks = Task::count();
 
         // Recent tasks (last 10)
-        $recentTasks = Task::with('division', 'employee')
+        $recentTasks = Task::with('divisions', 'employee')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
         // Tasks by division
-        $tasksByDivision = Division::withCount('task')
-            ->having('task_count', '>', 0)
-            ->orderBy('task_count', 'desc')
+        $tasksByDivision = Division::withCount('tasks')
+            ->having('tasks_count', '>', 0)
+            ->orderBy('tasks_count', 'desc')
             ->get()
             ->map(function ($division) {
                 return [
                     'id' => $division->id,
                     'division_name' => $division->division_name,
                     'division_color' => $division->division_color,
-                    'total_tasks' => $division->task_count,
-                    'not_started' => Task::where('division_id', $division->id)
-                        ->where('status', 'not_started')
-                        ->count(),
-                    'in_progress' => Task::where('division_id', $division->id)
-                        ->where('status', 'in_progress')
-                        ->count(),
-                    'completed' => Task::where('division_id', $division->id)
-                        ->where('status', 'completed')
-                        ->count(),
+                    'total_tasks' => $division->tasks_count,
+                    'not_started' => Task::whereHas('divisions', function($query) use ($division) {
+                        $query->where('divisions.id', $division->id);
+                    })->where('status', 'not_started')->count(),
+                    'in_progress' => Task::whereHas('divisions', function($query) use ($division) {
+                        $query->where('divisions.id', $division->id);
+                    })->where('status', 'in_progress')->count(),
+                    'completed' => Task::whereHas('divisions', function($query) use ($division) {
+                        $query->where('divisions.id', $division->id);
+                    })->where('status', 'completed')->count(),
                 ];
             });
 

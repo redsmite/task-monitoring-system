@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('description')->nullable();
             $table->foreignId('employee_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('division_id')->nullable()->constrained()->nullOnDelete();
             $table->string('last_action')->nullable();
             $table->string('status')->nullable();
             $table->string('priority')->nullable();

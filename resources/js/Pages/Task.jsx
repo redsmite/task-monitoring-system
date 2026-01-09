@@ -14,8 +14,6 @@ export default function Task() {
     const { props } = usePage();
     const {
         taskAll = [],
-        notStarted = [],
-        inProgress = [],
         completed = [],
         employees_data = [],
         divisions_data = [],
@@ -56,17 +54,21 @@ export default function Task() {
             // Find the updated task in any of the task arrays
             const allTasks = [
                 ...taskAll.data,
-                ...notStarted.data,
-                ...inProgress.data,
                 ...completed.data,
             ];
             const updatedTask = allTasks.find(t => t.id === viewedTask.id);
-            if (updatedTask && JSON.stringify(updatedTask) !== JSON.stringify(viewedTask)) {
-                setViewedTask(updatedTask);
+            // Only update if the task doesn't have updates loaded (to preserve full data)
+            if (updatedTask && !viewedTask.updates && JSON.stringify(updatedTask) !== JSON.stringify(viewedTask)) {
+                // Merge updates if available in viewedTask
+                if (viewedTask.updates) {
+                    setViewedTask({ ...updatedTask, updates: viewedTask.updates });
+                } else {
+                    setViewedTask(updatedTask);
+                }
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [taskAll.data, notStarted.data, inProgress.data, completed.data]);
+    }, [taskAll.data, completed.data]);
 
     // Polling: Fetch latest data from backend
     useEffect(() => {
@@ -86,7 +88,7 @@ export default function Task() {
             router.get(route('task.index'), currentParams, {
                 preserveState: true,
                 preserveScroll: true,
-                only: ['taskAll', 'notStarted', 'inProgress', 'completed', 'employees_data', 'divisions_data'],
+                only: ['taskAll', 'completed', 'employees_data', 'divisions_data'],
             });
         }, 30000); // 30 seconds
 
@@ -96,10 +98,22 @@ export default function Task() {
         };
     }, [drawerOpen, sidebarOpen]);
 
-    const handleTaskClick = (task) => {
-        setViewedTask(task);
+    const handleTaskClick = async (task) => {
+        // Fetch full task data with updates
+        try {
+            const response = await fetch(route('task.show', task.id));
+            const data = await response.json();
+            if (data.task) {
+                setViewedTask(data.task);
+            } else {
+                setViewedTask(task);
+            }
+        } catch (error) {
+            // Fallback to using the task from list if fetch fails
+            setViewedTask(task);
+        }
         setIsAddMode(false);
-        setDrawerOpen(true); // Use drawer for mobile, sidebar for desktop
+        setDrawerOpen(true);
         setSidebarOpen(true);
     }
 
@@ -153,44 +167,6 @@ export default function Task() {
         processing: editProcessingTaskAll,
         reset: resetEditDataTaskAll,
         errors: editErrorsTaskAll
-    } = useForm({
-        task_name: '',
-        assignee: '',
-        division: '',
-        last_action: '',
-        status: '',
-        priority: '',
-        due_date: '',
-        description: ''
-    })
-
-    // Not Started
-    const {
-        data: editDataNotStarted,
-        setData: setEditDataNotStarted,
-        patch: postEditDataNotStarted,
-        processing: editProcessingNotStarted,
-        reset: resetEditDataNotStarted,
-        errors: editErrorsNotStarted
-    } = useForm({
-        task_name: '',
-        assignee: '',
-        division: '',
-        last_action: '',
-        status: '',
-        priority: '',
-        due_date: '',
-        description: ''
-    })
-
-    // In Progress
-    const {
-        data: editDataInProgress,
-        setData: setEditDataInProgress,
-        patch: postEditDataInProgress,
-        processing: editProcessingInProgress,
-        reset: resetEditDataInProgress,
-        errors: editErrorsInProgress
     } = useForm({
         task_name: '',
         assignee: '',
@@ -304,38 +280,6 @@ export default function Task() {
                     />
 
                     <TaskList
-                        borderColor="border-gray-600"
-                        title="Not Started"
-                        icon="❌"
-                        data={notStarted.data}
-                        onTaskClick={handleTaskClick}
-                        onAddClick={() => handleAddClick('not_started')}
-                        showAddButton={true}
-                        paginationLinks={notStarted.links}
-                        paginationCurrentPage={notStarted.current_page}
-                        paginationPerPage={notStarted.per_page}
-                        paginationTotal={notStarted.total}
-                        paginationLastPage={notStarted.last_page}
-                        tableType="not_started"
-                    />
-
-                    <TaskList
-                        borderColor="border-orange-600"
-                        title="In Progress"
-                        icon="⌛"
-                        data={inProgress.data}
-                        onTaskClick={handleTaskClick}
-                        onAddClick={() => handleAddClick('in_progress')}
-                        showAddButton={true}
-                        paginationLinks={inProgress.links}
-                        paginationCurrentPage={inProgress.current_page}
-                        paginationPerPage={inProgress.per_page}
-                        paginationTotal={inProgress.total}
-                        paginationLastPage={inProgress.last_page}
-                        tableType="in_progress"
-                    />
-
-                    <TaskList
                         borderColor="border-green-600"
                         title="Completed"
                         icon="✅"
@@ -356,7 +300,7 @@ export default function Task() {
                 <div className="hidden md:flex flex-col gap-8">
                     <TaskTable
                         borderColor="border-violet-600"
-                        tableTitle="All Tasks"
+                        tableTitle="Tasks"
                         tableIcon="📄"
                         data={taskAll.data}
                         employees_data={employees_data}
@@ -383,66 +327,9 @@ export default function Task() {
                         tableType="task_all"
                     />
 
-                    <TaskTable
-                        borderColor="border-gray-600"
-                        tableTitle="Not Started"
-                        tableIcon="❌"
-                        data={notStarted.data}
-                        employees_data={employees_data}
-                        divisions_data={divisions_data}
-                        paginationLinks={notStarted.links}
-                        paginationCurrentPage={notStarted.current_page}
-                        paginationPerPage={notStarted.per_page}
-                        paginationTotal={notStarted.total}
-                        paginationLastPage={notStarted.last_page}
-                        addData={addData}
-                        setDataAdd={setDataAdd}
-                        postAddData={postAddData}
-                        addProcessing={addProcessing}
-                        resetAddData={resetAddData}
-                        addErrors={addErrors}
-                        editData={editDataNotStarted}
-                        setEditData={setEditDataNotStarted}
-                        postEditData={postEditDataNotStarted}
-                        editProcessing={editProcessingNotStarted}
-                        resetEditData={resetEditDataNotStarted}
-                        editErrors={editErrorsNotStarted}
-                        deleteTask={deleteTask}
-                        onRowClick={handleTaskClick}
-                        tableType="not_started"
-                    />
 
                     <TaskTable
-                        tableTitle="In Progress"
-                        borderColor="border-orange-600"
-                        tableIcon="⌛"
-                        data={inProgress.data}
-                        employees_data={employees_data}
-                        divisions_data={divisions_data}
-                        paginationLinks={inProgress.links}
-                        paginationCurrentPage={inProgress.current_page}
-                        paginationPerPage={inProgress.per_page}
-                        paginationTotal={inProgress.total}
-                        paginationLastPage={inProgress.last_page}
-                        addData={addData}
-                        setDataAdd={setDataAdd}
-                        postAddData={postAddData}
-                        addProcessing={addProcessing}
-                        resetAddData={resetAddData}
-                        addErrors={addErrors}
-                        editData={editDataInProgress}
-                        setEditData={setEditDataInProgress}
-                        postEditData={postEditDataInProgress}
-                        editProcessing={editProcessingInProgress}
-                        resetEditData={resetEditDataInProgress}
-                        editErrors={editErrorsInProgress}
-                        deleteTask={deleteTask}
-                        onRowClick={handleTaskClick}
-                        tableType="in_progress"
-                    />
-
-                    <TaskTable
-                        tableTitle="Completed"
+                        tableTitle="Completed Tasks"
                         borderColor="border-green-600"
                         tableIcon="✅"
                         data={completed.data}
