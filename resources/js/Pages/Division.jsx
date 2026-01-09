@@ -14,12 +14,16 @@ import IconButton from '@/Components/Button/IconButton';
 import DivisionContainer from '@/Components/Misc/DivisionContainer';
 import DivisionList from '@/Components/Division/DivisionList';
 import DivisionDrawer from '@/Components/Division/DivisionDrawer';
+import Modal from '@/Components/Modal';
 import { SelectItem } from "@/Components/ui/select";
 import { Head, useForm, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 
 export default function Division({ divisions = [] }) {
     const [editingId, setEditingId] = useState(null);
+    
+    // Modal state (Desktop)
+    const [modalOpen, setModalOpen] = useState(false);
     
     // Drawer state (Mobile/Tablet)
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -145,12 +149,28 @@ export default function Division({ divisions = [] }) {
             division_color: division.division_color,
         });
         clearErrors();
+        setModalOpen(true);
+    };
+
+    const handleAdd = () => {
+        setEditingId(null);
+        reset();
+        clearErrors();
+        setModalOpen(true);
     };
 
     const handleCancel = () => {
         setEditingId(null);
         reset();
         clearErrors();
+        setModalOpen(false);
+    };
+
+    const handleCloseModal = () => {
+        setEditingId(null);
+        reset();
+        clearErrors();
+        setModalOpen(false);
     };
 
     const handleSubmit = (e) => {
@@ -161,7 +181,7 @@ export default function Division({ divisions = [] }) {
                 preserveScroll: true,
                 onSuccess: () => {
                     toast.success('Division updated successfully!');
-                    handleCancel();
+                    handleCloseModal();
                 },
                 onError: (errors) => {
                     const messages = Object.values(errors).flat().join(" ");
@@ -173,7 +193,7 @@ export default function Division({ divisions = [] }) {
                 preserveScroll: true,
                 onSuccess: () => {
                     toast.success('Division added successfully!');
-                    reset();
+                    handleCloseModal();
                 },
                 onError: (errors) => {
                     const messages = Object.values(errors).flat().join(" ");
@@ -260,64 +280,73 @@ export default function Division({ divisions = [] }) {
                 </div>
 
                 <div className="space-y-8">
-                    {/* Add/Edit Form - Desktop Only */}
-                    <div className={`hidden md:block bg-white rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 ${editingId ? 'dark:bg-amber-900' : 'dark:bg-emerald-900'}`}>
-                        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                            {editingId ? 'Edit Division' : 'Add Division'}
-                        </h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-black dark:text-white">
-                                        Division Name
-                                    </label>
-                                    <PrimaryInput
-                                        type="text"
-                                        placeholder="Enter division name"
-                                        value={data.division_name}
-                                        onChange={(e) => setData('division_name', e.target.value)}
-                                        error={errors.division_name}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-black dark:text-white">
-                                        Division Color
-                                    </label>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="color"
-                                            value={data.division_color}
-                                            onChange={(e) => setData('division_color', e.target.value)}
-                                            className="h-10 w-20 cursor-pointer"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={data.division_color}
-                                            onChange={(e) => setData('division_color', e.target.value)}
-                                            placeholder="#FF6B6B"
-                                            className="flex-1 h-10 px-3 rounded-md border border-input bg-background text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-black dark:border-stone-800 dark:text-white"
+                    {/* Add Button - Desktop Only */}
+                    <div className="hidden md:block">
+                        <PrimaryButton onClick={handleAdd}>
+                            Add Division
+                        </PrimaryButton>
+                    </div>
+
+                    {/* Add/Edit Modal - Desktop Only */}
+                    <div className="hidden md:block">
+                        <Modal show={modalOpen} onClose={handleCloseModal} maxWidth="2xl">
+                            <div className="p-6">
+                                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+                                    {editingId ? 'Edit Division' : 'Add Division'}
+                                </h2>
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-black dark:text-white">
+                                                Division Name
+                                            </label>
+                                            <PrimaryInput
+                                                type="text"
+                                                placeholder="Enter division name"
+                                                value={data.division_name}
+                                                onChange={(e) => setData('division_name', e.target.value)}
+                                                error={errors.division_name}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-black dark:text-white">
+                                                Division Color
+                                            </label>
+                                            <div className="flex items-center gap-3">
+                                                <input
+                                                    type="color"
+                                                    value={data.division_color}
+                                                    onChange={(e) => setData('division_color', e.target.value)}
+                                                    className="h-10 w-20 cursor-pointer"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={data.division_color}
+                                                    onChange={(e) => setData('division_color', e.target.value)}
+                                                    placeholder="#FF6B6B"
+                                                    className="flex-1 h-10 px-3 rounded-md border border-input bg-background text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-black dark:border-stone-800 dark:text-white"
+                                                />
+                                            </div>
+                                            <p className="text-red-600 dark:text-red-500">{errors.division_color}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <PrimaryButton
+                                            type="submit"
+                                            disabled={processing}
+                                        >
+                                            {processing ? 'Saving...' : (editingId ? 'Update' : 'Add')}
+                                        </PrimaryButton>
+                                        <SecondaryButton
+                                            type="button"
+                                            text="Cancel"
+                                            onClick={handleCancel}
+                                            disabled={processing}
                                         />
                                     </div>
-                                    <p className="text-red-600 dark:text-red-500">{errors.division_color}</p>
-                                </div>
+                                </form>
                             </div>
-                            <div className="flex gap-2">
-                                <PrimaryButton
-                                    type="submit"
-                                    disabled={processing}
-                                >
-                                    {processing ? 'Saving...' : (editingId ? 'Update' : 'Add')}
-                                </PrimaryButton>
-                                {editingId && (
-                                    <SecondaryButton
-                                        type="button"
-                                        text="Cancel"
-                                        onClick={handleCancel}
-                                        disabled={processing}
-                                    />
-                                )}
-                            </div>
-                        </form>
+                        </Modal>
                     </div>
 
                     {/* Division List - Mobile/Tablet Only */}
