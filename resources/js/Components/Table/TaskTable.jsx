@@ -765,6 +765,7 @@ export default function TaskTable({
                                 >
                                     <DateContainer
                                         bgcolor="bg-blue-200"
+                                        textColor="text-blue-900"
                                     >
                                         {task?.created_at || 'N/A'}
                                     </DateContainer>
