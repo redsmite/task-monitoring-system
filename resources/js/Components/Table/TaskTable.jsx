@@ -568,16 +568,16 @@ export default function TaskTable({
 
                                 </SelectInput>
                             </TableData>
+                            <TableData
+                                className="text-center text-gray-400 dark:text-gray-500"
+                            >
+                                TBD
+                            </TableData>
                             <TableData>
                                 <Datepicker
                                     value={addData.due_date}
                                     onChange={(date) => updateAddTaskData("due_date", formatDateToSave(date))}
                                 />
-                            </TableData>
-                            <TableData
-                                className="text-center text-gray-400 dark:text-gray-500"
-                            >
-                                N/A
                             </TableData>
                             <TableData>
                                 <SelectInput
@@ -667,7 +667,7 @@ export default function TaskTable({
                                     </div>
                                 </TableData>
                                 <TableData>
-                                    {task?.latest_update?.update_text || task?.last_action || 'No updates'}
+                                    {task?.latest_update?.update_text || task?.last_action || ''}
                                 </TableData>
                                 <TableData
                                     className={`text-center font-semibold text-md ${task?.status === 'Not Started'
@@ -917,22 +917,22 @@ export default function TaskTable({
                                     value={addData.status || preselectStatus(tableType) || ''}
                                     onChange={(value) => updateAddTaskData("status", value)}
                                 >
-                                    <SelectItem value="not_started">Not Started</SelectItem>
+                                    <SelectItem value="not_started">Not Started </SelectItem>
                                     <SelectItem value="in_progress">In Progress</SelectItem>
                                     <SelectItem value="completed">Completed</SelectItem>
 
                                 </SelectInput>
+                            </TableData>
+                            <TableData
+                                className="text-center text-gray-400 dark:text-gray-500"
+                            >
+                                TBD
                             </TableData>
                             <TableData>
                                 <Datepicker
                                     value={addData.due_date}
                                     onChange={(date) => updateAddTaskData("due_date", formatDateToSave(date))}
                                 />
-                            </TableData>
-                            <TableData
-                                className="text-center text-gray-400 dark:text-gray-500"
-                            >
-                                N/A
                             </TableData>
                             <TableData>
                                 <SelectInput

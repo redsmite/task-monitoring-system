@@ -59,7 +59,7 @@ export default function MultiSelectInput({
                         variant="outline"
                         role="combobox"
                         className={cn(
-                            "w-full justify-between min-h-9 py-2 px-3 text-left touch-manipulation",
+                            "mb-2 w-full justify-between min-h-9 py-2 px-3 text-left touch-manipulation",
                             "flex items-start",
                             selectedOptions.length > 0 ? "h-auto" : "h-9",
                             !selectedArray.length && "text-muted-foreground"
@@ -146,12 +146,6 @@ export default function MultiSelectInput({
                                         <span className="text-sm sm:text-sm flex-1 truncate">
                                             {option.division_name || option.name || String(option.id)}
                                         </span>
-                                        {option.division_color && (
-                                            <span
-                                                className="h-4 w-4 sm:h-3 sm:w-3 rounded-full border border-gray-300 flex-shrink-0"
-                                                style={{ backgroundColor: option.division_color }}
-                                            />
-                                        )}
                                     </div>
                                 );
                             })
