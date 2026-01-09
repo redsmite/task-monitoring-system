@@ -1,5 +1,5 @@
 import GuestLayout from '@/Layouts/GuestLayout';
-import PrimaryButton from '@/Components/Button/PrimaryButton';
+import LoginButton from '@/Components/Button/LoginButton';
 import PrimaryInput from '@/Components/Form/PrimaryInput';
 import { Head, useForm } from '@inertiajs/react';
 
@@ -48,7 +48,7 @@ export default function PinLogin() {
                                 error={errors.pin}
                             />
 
-                            <PrimaryButton
+                            <LoginButton
                                 text="Login"
                                 disabled={processing}
                                 onClick={submit}
@@ -62,7 +62,7 @@ export default function PinLogin() {
                         <div className="mt-60 flex items-center justify-center gap-3">
                             <span className="text-green-600 font-semibold dark:text-green-400"> © DENR NCR 2025</span>
                             <span className="text-green-600 font-semibold dark:text-green-400">|</span>
-                            <span className="text-green-600 font-semibold dark:text-green-400">v0.8</span>
+                            <span className="text-green-600 font-semibold dark:text-green-400">v0.9</span>
                         </div>
                     </div>
                 </div>
