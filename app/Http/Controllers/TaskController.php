@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\Task;
+use App\Models\TaskUpdate;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,27 +25,28 @@ class TaskController extends Controller
 
         // Get page numbers for each table separately
         $taskAllPage = $request->get('task_all_page', 1);
-        $notStartedPage = $request->get('not_started_page', 1);
-        $inProgressPage = $request->get('in_progress_page', 1);
         $completedPage = $request->get('completed_page', 1);
 
         // Get search parameters for each table
         $taskAllSearch = $request->get('task_all_search', '');
-        $notStartedSearch = $request->get('not_started_search', '');
-        $inProgressSearch = $request->get('in_progress_search', '');
         $completedSearch = $request->get('completed_search', '');
+
+        // Get status filter for task_all
+        $taskAllStatusFilter = $request->get('task_all_status', '');
 
         // Get sort order for each table (asc or desc, default to desc)
         $taskAllSort = $request->get('task_all_sort', 'desc');
-        $notStartedSort = $request->get('not_started_sort', 'desc');
-        $inProgressSort = $request->get('in_progress_sort', 'desc');
         $completedSort = $request->get('completed_sort', 'desc');
 
         // Validate sort order
         $taskAllSort = in_array($taskAllSort, ['asc', 'desc']) ? $taskAllSort : 'desc';
-        $notStartedSort = in_array($notStartedSort, ['asc', 'desc']) ? $notStartedSort : 'desc';
-        $inProgressSort = in_array($inProgressSort, ['asc', 'desc']) ? $inProgressSort : 'desc';
         $completedSort = in_array($completedSort, ['asc', 'desc']) ? $completedSort : 'desc';
+
+        // Validate status filter (treat 'all' as empty/no filter)
+        $taskAllStatusFilter = in_array($taskAllStatusFilter, ['in_progress', 'not_started', 'all', '']) ? $taskAllStatusFilter : '';
+        if ($taskAllStatusFilter === 'all') {
+            $taskAllStatusFilter = '';
+        }
 
         // Helper function to apply search
         $applySearch = function ($query, $search) {
@@ -52,11 +54,14 @@ class TaskController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
                         ->orWhere('last_action', 'like', '%' . $search . '%')
+                        ->orWhereHas('updates', function ($updateQuery) use ($search) {
+                            $updateQuery->where('update_text', 'like', '%' . $search . '%');
+                        })
                         ->orWhereHas('employee', function ($empQuery) use ($search) {
                             $empQuery->where('first_name', 'like', '%' . $search . '%')
                                 ->orWhere('last_name', 'like', '%' . $search . '%');
                         })
-                        ->orWhereHas('division', function ($divQuery) use ($search) {
+                        ->orWhereHas('divisions', function ($divQuery) use ($search) {
                             $divQuery->where('division_name', 'like', '%' . $search . '%');
                         });
                 });
@@ -64,28 +69,22 @@ class TaskController extends Controller
             return $query;
         };
 
+        // Build taskAll query
+        $taskAllQuery = Task::with('divisions', 'employee', 'latestUpdate')
+            ->whereIn('status', ['not_started', 'in_progress']);
+        
+        // Apply status filter if provided
+        if (!empty($taskAllStatusFilter)) {
+            $taskAllQuery->where('status', $taskAllStatusFilter);
+        }
+        
         $taskAll = $applySearch(
-            Task::with('division', 'employee')
-                ->orderBy('created_at', $taskAllSort),
+            $taskAllQuery->orderBy('created_at', $taskAllSort),
             $taskAllSearch
         )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
 
-        $notStarted = $applySearch(
-            Task::with('division', 'employee')
-                ->where('status', 'not_started')
-                ->orderBy('created_at', $notStartedSort),
-            $notStartedSearch
-        )->paginate(15, ['*'], 'not_started_page', $notStartedPage);
-
-        $inProgress = $applySearch(
-            Task::with('division', 'employee')
-                ->where('status', 'in_progress')
-                ->orderBy('created_at', $inProgressSort),
-            $inProgressSearch
-        )->paginate(15, ['*'], 'in_progress_page', $inProgressPage);
-
         $completed = $applySearch(
-            Task::with('division', 'employee')
+            Task::with('divisions', 'employee', 'latestUpdate')
                 ->where('status', 'completed')
                 ->orderBy('created_at', $completedSort),
             $completedSearch
@@ -104,22 +103,6 @@ class TaskController extends Controller
                 'total' => $taskAll->total(),
             ],
 
-            'notStarted' => [
-                'data' => TaskResource::collection($notStarted->items())->resolve(),
-                'links' => $notStarted->linkCollection()->toArray(),
-                'current_page' => $notStarted->currentPage(),
-                'last_page' => $notStarted->lastPage(),
-                'per_page' => $notStarted->perPage(),
-                'total' => $notStarted->total(),
-            ],
-            'inProgress' => [
-                'data' => TaskResource::collection($inProgress->items())->resolve(),
-                'links' => $inProgress->linkCollection()->toArray(),
-                'current_page' => $inProgress->currentPage(),
-                'last_page' => $inProgress->lastPage(),
-                'per_page' => $inProgress->perPage(),
-                'total' => $inProgress->total(),
-            ],
             'completed' => [
                 'data' => TaskResource::collection($completed->items())->resolve(),
                 'links' => $completed->linkCollection()->toArray(),
@@ -131,14 +114,10 @@ class TaskController extends Controller
 
             'search_params' => [
                 'task_all_search' => $taskAllSearch,
-                'not_started_search' => $notStartedSearch,
-                'in_progress_search' => $inProgressSearch,
                 'completed_search' => $completedSearch,
             ],
             'sort_params' => [
                 'task_all_sort' => $taskAllSort,
-                'not_started_sort' => $notStartedSort,
-                'in_progress_sort' => $inProgressSort,
                 'completed_sort' => $completedSort,
             ],
         ]);
@@ -160,7 +139,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'task_name' => 'required|string|max:255',
             'assignee' => 'required|string|max:255',
-            'division' => 'required|string|max:255',
+            'division' => 'required', // Can be string or array
             'last_action' => 'nullable|string|max:255',
             'status' => 'required|string|max:255',
             'priority' => 'nullable|string|max:255',
@@ -172,9 +151,15 @@ class TaskController extends Controller
             ? intval($validated['assignee'])
             : null;
 
-        $divisionId = !empty($validated['division'])
-            ? intval($validated['division'])
-            : null;
+        // Handle divisions - can be single value or array
+        $divisionIds = [];
+        if (!empty($validated['division'])) {
+            if (is_array($validated['division'])) {
+                $divisionIds = array_filter(array_map('intval', $validated['division']));
+            } else {
+                $divisionIds = [intval($validated['division'])];
+            }
+        }
 
         // Normalize due_date to avoid timezone issues - set to start of day
         $dueDate = null;
@@ -190,13 +175,26 @@ class TaskController extends Controller
         $task = Task::create([
             'name' => $validated['task_name'],
             'employee_id' => $employeeId,
-            'division_id' => $divisionId,
-            'last_action' => $validated['last_action'] ?? null,
+            'last_action' => $validated['last_action'] ?? null, // Keep for backward compatibility
             'status' => $validated['status'] ?? null,
             'priority' => $validated['priority'] ?? null,
             'due_date' => $dueDate,
             'description' => $validated['description'] ?? null,
         ]);
+
+        // Attach divisions to task
+        if (!empty($divisionIds)) {
+            $task->divisions()->sync($divisionIds);
+        }
+
+        // Create initial task update if last_action is provided
+        if (!empty($validated['last_action'])) {
+            TaskUpdate::create([
+                'task_id' => $task->id,
+                'update_text' => $validated['last_action'],
+                'user_id' => Auth::id(),
+            ]);
+        }
 
         // Log activity
         Activity::create([
@@ -215,7 +213,11 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        //
+        $task->load(['divisions', 'employee', 'updates.user']);
+        
+        return response()->json([
+            'task' => new TaskResource($task),
+        ]);
     }
 
     /**
@@ -232,14 +234,14 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         // Check if ONLY description is being updated (no other fields present)
-        $hasOtherFields = $request->has('task_name') || 
-                         $request->has('assignee') || 
-                         $request->has('division') || 
-                         $request->has('last_action') || 
-                         $request->has('status') || 
-                         $request->has('priority') || 
-                         $request->has('due_date');
-        
+        $hasOtherFields = $request->has('task_name') ||
+            $request->has('assignee') ||
+            $request->has('division') ||
+            $request->has('last_action') ||
+            $request->has('status') ||
+            $request->has('priority') ||
+            $request->has('due_date');
+
         if ($request->has('description') && !$hasOtherFields) {
             $validated = $request->validate([
                 'description' => 'nullable|string',
@@ -273,7 +275,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'task_name' => 'sometimes|required|string|max:255',
             'assignee' => 'sometimes|nullable|string|max:255',
-            'division' => 'sometimes|nullable|string|max:255',
+            'division' => 'sometimes|nullable', // Can be string, array, or null
             'last_action' => 'sometimes|nullable|string|max:255',
             'status' => 'sometimes|nullable|string|max:255',
             'priority' => 'sometimes|nullable|string|max:255',
@@ -285,14 +287,21 @@ class TaskController extends Controller
             ? intval($validated['assignee'])
             : null;
 
-        $divisionId = !empty($validated['division'])
-            ? intval($validated['division'])
-            : null;
+        // Handle divisions - can be single value, array, or null
+        $divisionIds = [];
+        if (!empty($validated['division'])) {
+            if (is_array($validated['division'])) {
+                $divisionIds = array_filter(array_map('intval', $validated['division']));
+            } else {
+                $divisionIds = [intval($validated['division'])];
+            }
+        }
 
         // Get original values for change tracking
         $original = $task->getOriginal();
+        $originalDivisionIds = $task->divisions->pluck('id')->toArray();
 
-        // Prepare new values
+        // Prepare new values (excluding division_id)
         // Normalize due_date to avoid timezone issues - set to start of day in app timezone
         $dueDate = null;
         if (!empty($validated['due_date'])) {
@@ -307,7 +316,6 @@ class TaskController extends Controller
         $newValues = [
             'name' => $validated['task_name'],
             'employee_id' => $employeeId,
-            'division_id' => $divisionId,
             'last_action' => $validated['last_action'] ?? null,
             'status' => $validated['status'] ?? null,
             'priority' => $validated['priority'] ?? null,
@@ -394,23 +402,6 @@ class TaskController extends Controller
                     } else {
                         $toValue = 'N/A';
                     }
-                } elseif ($key === 'division_id') {
-                    $displayKey = 'division';
-                    // Resolve original division name
-                    if ($originalValue) {
-                        $originalDivision = Division::find($originalValue);
-                        $fromValue = $originalDivision ? $originalDivision->division_name : 'N/A';
-                    } else {
-                        $fromValue = 'N/A';
-                    }
-
-                    // Resolve new division name
-                    if ($newValue) {
-                        $newDivision = Division::find($newValue);
-                        $toValue = $newDivision ? $newDivision->division_name : 'N/A';
-                    } else {
-                        $toValue = 'N/A';
-                    }
                 }
 
                 $changes[$displayKey] = [
@@ -420,7 +411,43 @@ class TaskController extends Controller
             }
         }
 
+        // Handle division changes separately
+        sort($originalDivisionIds);
+        sort($divisionIds);
+        if ($originalDivisionIds !== $divisionIds) {
+            $originalDivisionNames = Division::whereIn('id', $originalDivisionIds)->pluck('division_name')->toArray();
+            $newDivisionNames = Division::whereIn('id', $divisionIds)->pluck('division_name')->toArray();
+            
+            $changes['division'] = [
+                'from' => !empty($originalDivisionNames) ? implode(', ', $originalDivisionNames) : 'N/A',
+                'to' => !empty($newDivisionNames) ? implode(', ', $newDivisionNames) : 'N/A',
+            ];
+        }
+
         $task->update($newValues);
+
+        // Sync divisions
+        $task->divisions()->sync($divisionIds);
+
+        // Handle last_action update - update latest or create new if provided
+        if (!empty($validated['last_action']) && isset($validated['last_action'])) {
+            $latestUpdate = $task->latestUpdate;
+            if ($latestUpdate) {
+                // Update the latest update if text changed
+                if ($latestUpdate->update_text !== $validated['last_action']) {
+                    $latestUpdate->update([
+                        'update_text' => $validated['last_action'],
+                    ]);
+                }
+            } else {
+                // Create first update if none exists
+                TaskUpdate::create([
+                    'task_id' => $task->id,
+                    'update_text' => $validated['last_action'],
+                    'user_id' => Auth::id(),
+                ]);
+            }
+        }
 
         // Log activity
         Activity::create([
@@ -455,5 +482,99 @@ class TaskController extends Controller
         ]);
 
         return redirect()->route('task.index')->with('success', 'Task deleted!');
+    }
+
+    /**
+     * Store a new task update.
+     */
+    public function storeUpdate(Request $request, Task $task)
+    {
+        $validated = $request->validate([
+            'update_text' => 'required|string|max:1000',
+        ]);
+
+        $update = TaskUpdate::create([
+            'task_id' => $task->id,
+            'update_text' => $validated['update_text'],
+            'user_id' => Auth::id(),
+        ]);
+
+        // Update last_action for backward compatibility
+        $task->update(['last_action' => $validated['update_text']]);
+
+        // Log activity
+        Activity::create([
+            'action' => 'created',
+            'model_type' => TaskUpdate::class,
+            'model_id' => $update->id,
+            'description' => "Update added to task '{$task->name}'",
+            'user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Update added successfully!');
+    }
+
+    /**
+     * Update an existing task update.
+     */
+    public function updateUpdate(Request $request, Task $task, TaskUpdate $update)
+    {
+        // Verify the update belongs to the task
+        if ($update->task_id !== $task->id) {
+            abort(403, 'Update does not belong to this task');
+        }
+
+        $validated = $request->validate([
+            'update_text' => 'required|string|max:1000',
+        ]);
+
+        $update->update([
+            'update_text' => $validated['update_text'],
+        ]);
+
+        // Update last_action if this is the latest update
+        $latestUpdate = $task->latestUpdate;
+        if ($latestUpdate && $latestUpdate->id === $update->id) {
+            $task->update(['last_action' => $validated['update_text']]);
+        }
+
+        // Log activity
+        Activity::create([
+            'action' => 'updated',
+            'model_type' => TaskUpdate::class,
+            'model_id' => $update->id,
+            'description' => "Update edited for task '{$task->name}'",
+            'user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Update updated successfully!');
+    }
+
+    /**
+     * Delete a task update.
+     */
+    public function destroyUpdate(Task $task, TaskUpdate $update)
+    {
+        // Verify the update belongs to the task
+        if ($update->task_id !== $task->id) {
+            abort(403, 'Update does not belong to this task');
+        }
+
+        $update->delete();
+
+        // Update last_action to the new latest update if exists
+        $latestUpdate = $task->latestUpdate;
+        $task->update(['last_action' => $latestUpdate ? $latestUpdate->update_text : null]);
+
+        // Log activity
+        Activity::create([
+            'action' => 'deleted',
+            'model_type' => TaskUpdate::class,
+            'model_id' => $update->id,
+            'description' => "Update deleted from task '{$task->name}'",
+            'user_id' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Update deleted successfully!');
     }
 }

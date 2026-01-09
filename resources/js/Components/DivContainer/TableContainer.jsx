@@ -12,8 +12,8 @@ export default function TableContainer({ children, tableIcon, tableTitle, border
                 </span>
                 {headerContent}
             </div>
-            <div className={`overflow-hidden bg-gray-100 shadow-lg sm:rounded-lg dark:bg-zinc-900 border-l-8 ${borderColor}`}>
-                <div className="p-1 border-t border-b border-r border-gray-300 dark:border-stone-800 rounded-r-lg">
+            <div className={`overflow-x-auto overflow-y-hidden bg-gray-100 shadow-lg sm:rounded-lg dark:bg-zinc-900 border-l-8 ${borderColor}`}>
+                <div className="p-1 border-t border-b border-r border-gray-300 dark:border-stone-800 rounded-r-lg min-w-full">
                     {children}
                 </div>
             </div>

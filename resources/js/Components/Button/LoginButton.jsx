@@ -1,17 +1,11 @@
 import { cn } from "@/lib/utils";
 
-export default function PrimaryButton({
-    className = '',
-    disabled,
-    children,
-    ...props
-}) {
+export default function PrimaryButton({ text, onClick, disabled, className=""}) {
     return (
         <button
-            {...props}
             className={cn(
                 // Base styles - consistent across all buttons
-                "inline-flex items-center justify-center gap-2",
+                "w-full inline-flex items-center justify-center gap-2",
                 "h-9 px-4 py-2",
                 "rounded border border-transparent",
                 "text-sm font-medium",
@@ -29,9 +23,10 @@ export default function PrimaryButton({
                 "cursor-pointer",
                 className
             )}
+            onClick={onClick}
             disabled={disabled}
         >
-            {children}
+            {text}
         </button>
-    );
+    )
 }

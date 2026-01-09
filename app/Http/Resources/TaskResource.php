@@ -44,12 +44,45 @@ class TaskResource extends JsonResource
                 'division_name' => $this->division->division_name,
                 'division_color' => $this->division->division_color,
             ] : null,
+            'divisions' => $this->divisions->map(function ($division) {
+                return [
+                    'id' => $division->id,
+                    'division_name' => $division->division_name,
+                    'division_color' => $division->division_color,
+                ];
+            }),
 
             'employee' => $this->employee ? [
                 'id' => $this->employee->id,
                 'first_name' => $this->employee->first_name,
                 'last_name' => $this->employee->last_name,
             ] : null,
+
+            // Latest update for display in tables/lists
+            'latest_update' => $this->latestUpdate ? [
+                'id' => $this->latestUpdate->id,
+                'update_text' => $this->latestUpdate->update_text,
+                'created_at' => $this->latestUpdate->created_at ? $this->latestUpdate->created_at->format('m/d/Y H:i') : null,
+                'user' => $this->latestUpdate->user ? [
+                    'id' => $this->latestUpdate->user->id,
+                    'name' => $this->latestUpdate->user->name,
+                ] : null,
+            ] : null,
+
+            // All updates for history view
+            'updates' => $this->whenLoaded('updates', function () {
+                return $this->updates->map(function ($update) {
+                    return [
+                        'id' => $update->id,
+                        'update_text' => $update->update_text,
+                        'created_at' => $update->created_at ? $update->created_at->format('m/d/Y H:i') : null,
+                        'user' => $update->user ? [
+                            'id' => $update->user->id,
+                            'name' => $update->user->name,
+                        ] : null,
+                    ];
+                });
+            }),
 
             'created_at' => $this->created_at ? $this->created_at->format('m/d/Y') : null,
         ];
