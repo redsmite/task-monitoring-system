@@ -98,7 +98,7 @@ export default function MultiSelectInput({
                                     </span>
                                 ))
                             ) : (
-                                <span className="truncate text-sm sm:text-base">{displayText}</span>
+                                <span className="text-sm">{displayText}</span>
                             )}
                         </div>
                         <ChevronDown className={cn(

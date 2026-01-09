@@ -121,7 +121,6 @@ export default function TaskTable({
             isInitialMount.current = false;
 
             // If all params for this table already exist and match, skip update
-            // Normalize status: 'all' means no param in URL (undefined/empty)
             const normalizedStatusFilter = (statusFilterValue === 'all' || !statusFilterValue) ? '' : statusFilterValue;
             const normalizedExistingStatus = existingStatus || '';
 
@@ -132,7 +131,6 @@ export default function TaskTable({
                 return; // Params already match, no need to update
             }
 
-            // If URL is completely empty, stagger initialization to prevent race conditions
             // Each table adds a small delay based on its type to ensure params are added sequentially
             const urlIsEmpty = Object.keys(currentParams).length === 0;
             if (urlIsEmpty) {
@@ -304,11 +302,9 @@ export default function TaskTable({
             }
 
             // Open this row and close all others
-            // (if you want only one open at a time)
             const next = { [task.id]: true };
 
             // Seed form data when opening
-            // Handle both old format (single division) and new format (array of divisions)
             const divisionIds = task.divisions && task.divisions.length > 0
                 ? task.divisions.map(d => String(d.id))
                 : task.division?.id
@@ -332,8 +328,8 @@ export default function TaskTable({
 
 
     // Edit
+    // useForm setData is async; use the callback form to avoid stale reads
     const updateEditTaskData = (field, value) => {
-        // useForm setData is async; use the callback form to avoid stale reads
         setEditData((data) => ({
             ...data,
             [field]: value,
@@ -437,7 +433,7 @@ export default function TaskTable({
                     value={statusFilterValue || 'all'}
                     onChange={(value) => handleStatusFilterChange(value)}
                 >
-                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="all">All Tasks</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
                     <SelectItem value="not_started">Not Started</SelectItem>
                 </SelectInput>
@@ -542,7 +538,7 @@ export default function TaskTable({
                             </TableData>
                             <TableData>
                                 <MultiSelectInput
-                                    placeholder="Select Division(s)"
+                                    placeholder="Select Division"
                                     options={divisions_data}
                                     value={Array.isArray(addData.division) ? addData.division : addData.division ? [addData.division] : []}
                                     onChange={(value) => updateAddTaskData("division", value)}
@@ -739,7 +735,7 @@ export default function TaskTable({
                                 </TableData>
                                 <TableData>
                                     <MultiSelectInput
-                                        placeholder="Select Division(s)"
+                                        placeholder="Select Division"
                                         options={divisions_data}
                                         value={Array.isArray(editData?.division) ? editData.division : editData?.division ? [editData.division] : (task?.divisions && task.divisions.length > 0 ? task.divisions.map(d => String(d.id)) : task?.division?.id ? [String(task.division.id)] : [])}
                                         onChange={(value) => updateEditTaskData("division", value)}
@@ -897,7 +893,7 @@ export default function TaskTable({
                             </TableData>
                             <TableData>
                                 <MultiSelectInput
-                                    placeholder="Select Division(s)"
+                                    placeholder="Select Division"
                                     options={divisions_data}
                                     value={Array.isArray(addData.division) ? addData.division : addData.division ? [addData.division] : []}
                                     onChange={(value) => updateAddTaskData("division", value)}
