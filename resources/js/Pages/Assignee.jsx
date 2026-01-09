@@ -265,7 +265,7 @@ export default function Assignee({ employees = [], divisions = [] }) {
 
             <MainContainer>
                 {/* Assignee Drawer - Mobile/Tablet Only */}
-                <div className="md:hidden">
+                <div className="lg:hidden">
                     <AssigneeDrawer
                         open={drawerOpen}
                         onClose={handleDrawerClose}
@@ -290,14 +290,14 @@ export default function Assignee({ employees = [], divisions = [] }) {
 
                 <div className="space-y-8">
                     {/* Add Button - Desktop Only */}
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <PrimaryButton onClick={handleAdd}>
                             Add Assignee
                         </PrimaryButton>
                     </div>
 
                     {/* Add/Edit Modal - Desktop Only */}
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <Modal show={modalOpen} onClose={handleCloseModal} maxWidth="2xl">
                             <div className="p-6">
                                 <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
@@ -379,7 +379,7 @@ export default function Assignee({ employees = [], divisions = [] }) {
                     </div>
 
                     {/* Assignee List - Mobile/Tablet Only */}
-                    <div className="md:hidden">
+                    <div className="lg:hidden">
                         <AssigneeList
                             borderColor="border-blue-500"
                             title="Assignees"
@@ -392,7 +392,7 @@ export default function Assignee({ employees = [], divisions = [] }) {
                     </div>
 
                     {/* Employee Table - Desktop Only */}
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <TableContainer
                         tableIcon="👥"
                         tableTitle="Assignees"

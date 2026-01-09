@@ -25,7 +25,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <img src="/assets/logo.png" alt="Logo" className="w-10 h-10" />
                                 </div>
 
-                                <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                                <div className="hidden space-x-8 lg:-my-px lg:ms-10 lg:flex">
                                     <NavLink
                                         href={route('dashboard.index')}
                                         active={route().current('dashboard.index')}
@@ -58,7 +58,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </NavLink>
                                 </div>
                             </div>
-                            <div className="hidden sm:ms-6 sm:flex sm:items-center space-x-4">
+                            <div className="hidden lg:ms-6 lg:flex lg:items-center space-x-4">
                                 <div className="relative ms-3">
                                     <Dropdown>
                                         <Dropdown.Trigger>
@@ -92,7 +92,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </div>
                                 <ModeToggle />
                             </div>
-                            <div className="-me-2 flex items-center sm:hidden space-x-2">
+                            <div className="-me-2 flex items-center lg:hidden space-x-2">
                                 <ModeToggle />
                                 <IconButton
                                     icon={
@@ -141,7 +141,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div
                         className={
                             (showingNavigationDropdown ? 'block' : 'hidden') +
-                            ' sm:hidden'
+                            ' lg:hidden'
                         }
                     >
                         <div className="space-y-1 pb-3 pt-2">

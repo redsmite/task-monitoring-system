@@ -257,7 +257,7 @@ export default function Division({ divisions = [] }) {
 
             <MainContainer>
                 {/* Division Drawer - Mobile/Tablet Only */}
-                <div className="md:hidden">
+                <div className="lg:hidden">
                     <DivisionDrawer
                         open={drawerOpen}
                         onClose={handleDrawerClose}
@@ -281,14 +281,14 @@ export default function Division({ divisions = [] }) {
 
                 <div className="space-y-8">
                     {/* Add Button - Desktop Only */}
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <PrimaryButton onClick={handleAdd}>
                             Add Division
                         </PrimaryButton>
                     </div>
 
                     {/* Add/Edit Modal - Desktop Only */}
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <Modal show={modalOpen} onClose={handleCloseModal} maxWidth="2xl">
                             <div className="p-6">
                                 <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
@@ -350,7 +350,7 @@ export default function Division({ divisions = [] }) {
                     </div>
 
                     {/* Division List - Mobile/Tablet Only */}
-                    <div className="md:hidden">
+                    <div className="lg:hidden">
                         <DivisionList
                             borderColor="border-purple-500"
                             title="Divisions"
@@ -363,7 +363,7 @@ export default function Division({ divisions = [] }) {
                     </div>
 
                     {/* Division Table - Desktop Only */}
-                    <div className="hidden md:block">
+                    <div className="hidden lg:block">
                         <TableContainer
                         tableIcon="🏢"
                         tableTitle="Divisions"

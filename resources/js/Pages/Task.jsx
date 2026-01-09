@@ -227,7 +227,7 @@ export default function Task() {
 
             <MainContainer>
                 {/* Sidebar - Desktop Only */}
-                <div className="hidden md:block">
+                <div className="hidden lg:block">
                     <Sidebar
                         open={sidebarOpen}
                         task={viewedTask}
@@ -236,7 +236,7 @@ export default function Task() {
                 </div>
 
                 {/* Task Drawer - Mobile/Tablet Only */}
-                <div className="md:hidden">
+                <div className="lg:hidden">
                     <TaskDrawer
                         open={drawerOpen}
                         onClose={handleDrawerClose}
@@ -262,7 +262,7 @@ export default function Task() {
                 </div>
 
                 {/* Task Lists - Mobile/Tablet Only */}
-                <div className="flex flex-col gap-6 md:gap-8 md:hidden">
+                <div className="flex flex-col gap-6 lg:gap-8 lg:hidden">
                     <TaskList
                         borderColor="border-violet-600"
                         title="All Tasks"
@@ -297,7 +297,7 @@ export default function Task() {
                 </div>
 
                 {/* Task Tables - Desktop Only */}
-                <div className="hidden md:flex flex-col gap-8">
+                <div className="hidden lg:flex flex-col gap-8">
                     <TaskTable
                         borderColor="border-violet-600"
                         tableTitle="Tasks"
