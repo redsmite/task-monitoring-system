@@ -7,11 +7,11 @@ export default function PriorityContainer({ children, priority }) {
             return "bg-cyan-300";
         }
 
-        if (status === "Medium") {
+        if (status === "Normal") {
             return "bg-violet-300";
         }
 
-        if (status === "High") {
+        if (status === "Urgent") {
             return "bg-red-300"
         }
 

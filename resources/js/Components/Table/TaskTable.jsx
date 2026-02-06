@@ -367,9 +367,8 @@ export default function TaskTable({
 
     const formatPriorityToDb = (value) => {
         const map = {
-            'High': 'high',
-            'Medium': 'medium',
-            'Low': 'low',
+            'Urgent': 'Urgent',
+            'Regular': 'Regular',
         }
         return map[value] || value;
     }
@@ -581,9 +580,8 @@ export default function TaskTable({
                                     value={addData.priority || ''}
                                     onChange={(value) => updateAddTaskData("priority", value)}
                                 >
-                                    <SelectItem value="high">High</SelectItem>
-                                    <SelectItem value="medium">Medium</SelectItem>
-                                    <SelectItem value="low">Low</SelectItem>
+                                    <SelectItem value="Urgent">Urgent</SelectItem>
+                                    <SelectItem value="Regular">Regular</SelectItem>
                                 </SelectInput>
                             </TableData>
                             {isAddActive && (
@@ -782,9 +780,8 @@ export default function TaskTable({
                                         value={editData?.priority || formatPriorityToDb(task?.priority) || ''}
                                         onChange={(value) => updateEditTaskData("priority", value)}
                                     >
-                                        <SelectItem value="high">High</SelectItem>
-                                        <SelectItem value="medium">Medium</SelectItem>
-                                        <SelectItem value="low">Low</SelectItem>
+                                        <SelectItem value="Urgent">Urgent</SelectItem>
+                                        <SelectItem value="Regular">Regular</SelectItem>
                                     </SelectInput>
                                 </TableData>
                             </>
@@ -937,9 +934,8 @@ export default function TaskTable({
                                     value={addData.priority || ''}
                                     onChange={(value) => updateAddTaskData("priority", value)}
                                 >
-                                    <SelectItem value="high">High</SelectItem>
-                                    <SelectItem value="medium">Medium</SelectItem>
-                                    <SelectItem value="low">Low</SelectItem>
+                                    <SelectItem value="Urgent">Urgent</SelectItem>
+                                    <SelectItem value="Regular">Regular</SelectItem>
                                 </SelectInput>
                             </TableData>
                             {isAddActive && (
