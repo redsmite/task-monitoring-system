@@ -466,7 +466,7 @@ export default function TaskTable({
                 Status
             </TableHeader>
             <TableHeader>
-                Date Created
+                Date Instructed
             </TableHeader>
             <TableHeader>
                 Due Date
