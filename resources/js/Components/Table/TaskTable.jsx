@@ -573,7 +573,6 @@ export default function TaskTable({
                                     }
                                 />
                             </TableData>
-
                             <TableData>
                                 <Datepicker
                                     value={addData.due_date}
@@ -927,10 +926,11 @@ export default function TaskTable({
 
                                 </SelectInput>
                             </TableData>
-                            <TableData
-                                className="text-center text-gray-400 dark:text-gray-500"
-                            >
-                                TBD
+                            <TableData>
+                                <Datepicker
+                                    value={addData.created_at}
+                                    onChange={(date) => updateAddTaskData("created_at", formatDateToSave(date))}
+                                />
                             </TableData>
                             <TableData>
                                 <Datepicker

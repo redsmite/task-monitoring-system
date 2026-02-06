@@ -16,7 +16,9 @@ class Task extends Model
         'last_action',
         'status',
         'priority',
-        'due_date'
+        'due_date',
+        'created_at', // 👈 add this
+        'updated_at', // optional
     ];
 
     protected $casts = [

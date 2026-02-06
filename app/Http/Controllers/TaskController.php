@@ -143,6 +143,7 @@ class TaskController extends Controller
             'last_action' => 'nullable|string|max:255',
             'status' => 'required|string|max:255',
             'priority' => 'nullable|string|max:255',
+            'created_at' => 'sometimes|nullable|date',// 👈 add this
             'due_date' => 'nullable|date',
             'description' => 'nullable|string',
         ]);
@@ -161,25 +162,27 @@ class TaskController extends Controller
             }
         }
 
-        // Normalize due_date to avoid timezone issues - set to start of day
-        $dueDate = null;
-        if (!empty($validated['due_date'])) {
-            try {
-                // Parse the date and set to start of day to avoid timezone shifts
-                $dueDate = \Carbon\Carbon::parse($validated['due_date'])->startOfDay();
-            } catch (\Exception $e) {
-                $dueDate = null;
-            }
-        }
+        // Normalize dates
+        $dueDate = !empty($validated['due_date'])
+            ? \Carbon\Carbon::parse($validated['due_date'])->startOfDay()
+            : null;
+
+        $createdAt = !empty($validated['created_at'])
+            ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay()
+            : now(); // fallback to current time if not provided
 
         $task = Task::create([
             'name' => $validated['task_name'],
             'employee_id' => $employeeId,
-            'last_action' => $validated['last_action'] ?? null, // Keep for backward compatibility
+            'last_action' => $validated['last_action'] ?? null,
             'status' => $validated['status'] ?? null,
             'priority' => $validated['priority'] ?? null,
             'due_date' => $dueDate,
+            'updated_at' => $createdAt, // optional, to keep timestamps consistent
             'description' => $validated['description'] ?? null,
+            'created_at' => !empty($validated['created_at']) 
+                ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay() 
+                : now(),
         ]);
 
         // Attach divisions to task
@@ -207,6 +210,7 @@ class TaskController extends Controller
 
         return back()->with('success', 'Task added successfully!');
     }
+
 
     /**
      * Display the specified resource.
@@ -240,7 +244,8 @@ class TaskController extends Controller
             $request->has('last_action') ||
             $request->has('status') ||
             $request->has('priority') ||
-            $request->has('due_date');
+            $request->has('due_date') ||
+            $request->has('created_at'); // 👈 include created_at
 
         if ($request->has('description') && !$hasOtherFields) {
             $validated = $request->validate([
@@ -272,6 +277,7 @@ class TaskController extends Controller
             return back();
         }
 
+        // Validate all fields including created_at
         $validated = $request->validate([
             'task_name' => 'sometimes|required|string|max:255',
             'assignee' => 'sometimes|nullable|string|max:255',
@@ -279,6 +285,7 @@ class TaskController extends Controller
             'last_action' => 'sometimes|nullable|string|max:255',
             'status' => 'sometimes|nullable|string|max:255',
             'priority' => 'sometimes|nullable|string|max:255',
+            'created_at' => 'sometimes|nullable|date', // 👈 added
             'due_date' => 'sometimes|nullable|date',
             'description' => 'sometimes|nullable|string',
         ]);
@@ -301,18 +308,16 @@ class TaskController extends Controller
         $original = $task->getOriginal();
         $originalDivisionIds = $task->divisions->pluck('id')->toArray();
 
-        // Prepare new values (excluding division_id)
-        // Normalize due_date to avoid timezone issues - set to start of day in app timezone
-        $dueDate = null;
-        if (!empty($validated['due_date'])) {
-            try {
-                // Parse the date and set to start of day to avoid timezone shifts
-                $dueDate = \Carbon\Carbon::parse($validated['due_date'])->startOfDay();
-            } catch (\Exception $e) {
-                $dueDate = null;
-            }
-        }
+        // Normalize due_date and created_at to avoid timezone issues - set to start of day
+        $dueDate = !empty($validated['due_date'])
+            ? \Carbon\Carbon::parse($validated['due_date'])->startOfDay()
+            : $task->due_date;
 
+        $createdAt = !empty($validated['created_at'])
+            ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay()
+            : $task->created_at;
+
+        // Prepare new values
         $newValues = [
             'name' => $validated['task_name'],
             'employee_id' => $employeeId,
@@ -321,126 +326,75 @@ class TaskController extends Controller
             'priority' => $validated['priority'] ?? null,
             'due_date' => $dueDate,
             'description' => $validated['description'] ?? null,
+            'created_at' => !empty($validated['created_at']) 
+                ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay() 
+                : $task->created_at, // keep existing if not changed
         ];
 
-        // Track changes by comparing original with new values
+
+        // Track changes
         $changes = [];
+
         foreach ($newValues as $key => $newValue) {
             $originalValue = $original[$key] ?? null;
 
-            // Special handling for due_date - normalize dates for comparison
-            if ($key === 'due_date') {
-                try {
-                    // Normalize both dates to Y-m-d format for comparison (ignoring time)
-                    $originalDate = null;
-                    $newDate = null;
+            // Special handling for dates
+            if (in_array($key, ['due_date', 'created_at'])) {
+                $originalDate = $originalValue ? \Carbon\Carbon::parse($originalValue)->format('Y-m-d') : null;
+                $newDate = $newValue ? \Carbon\Carbon::parse($newValue)->format('Y-m-d') : null;
 
-                    if ($originalValue) {
-                        $originalDate = is_string($originalValue)
-                            ? \Carbon\Carbon::parse($originalValue)->format('Y-m-d')
-                            : $originalValue->format('Y-m-d');
-                    }
-
-                    if ($newValue) {
-                        $newDate = \Carbon\Carbon::parse($newValue)->format('Y-m-d');
-                    }
-
-                    // Only track if dates are actually different
-                    if ($originalDate !== $newDate) {
-                        $fromFormatted = $originalValue
-                            ? (is_string($originalValue)
-                                ? \Carbon\Carbon::parse($originalValue)->format('m/d/Y')
-                                : $originalValue->format('m/d/Y'))
-                            : 'N/A';
-                        $toFormatted = $newValue
-                            ? \Carbon\Carbon::parse($newValue)->format('m/d/Y')
-                            : 'N/A';
-
-                        $changes[$key] = [
-                            'from' => $fromFormatted,
-                            'to' => $toFormatted,
-                        ];
-                    }
-                } catch (\Exception $e) {
-                    // If date parsing fails, fall back to regular comparison
-                    if ($originalValue != $newValue) {
-                        $changes[$key] = [
-                            'from' => $originalValue ?? 'N/A',
-                            'to' => $newValue ?? 'N/A',
-                        ];
-                    }
+                if ($originalDate !== $newDate) {
+                    $changes[$key] = [
+                        'from' => $originalValue ? \Carbon\Carbon::parse($originalValue)->format('m/d/Y') : 'N/A',
+                        'to' => $newValue ? \Carbon\Carbon::parse($newValue)->format('m/d/Y') : 'N/A',
+                    ];
                 }
                 continue;
             }
 
-            // Compare values (handle null comparisons)
-            if (
-                $originalValue != $newValue ||
-                ($originalValue === null && $newValue !== null) ||
-                ($originalValue !== null && $newValue === null)
-            ) {
-
-                // Resolve IDs to names for display
-                $fromValue = $originalValue;
-                $toValue = $newValue;
-                $displayKey = $key;
-
-                if ($key === 'employee_id') {
-                    $displayKey = 'assignee';
-                    // Resolve original employee name
-                    if ($originalValue) {
-                        $originalEmployee = Employee::find($originalValue);
-                        $fromValue = $originalEmployee ? trim($originalEmployee->first_name . ' ' . $originalEmployee->last_name) : 'N/A';
-                    } else {
-                        $fromValue = 'N/A';
-                    }
-
-                    // Resolve new employee name
-                    if ($newValue) {
-                        $newEmployee = Employee::find($newValue);
-                        $toValue = $newEmployee ? trim($newEmployee->first_name . ' ' . $newEmployee->last_name) : 'N/A';
-                    } else {
-                        $toValue = 'N/A';
-                    }
+            if ($key === 'employee_id') {
+                $fromValue = $originalValue ? Employee::find($originalValue)->full_name ?? 'N/A' : 'N/A';
+                $toValue = $newValue ? Employee::find($newValue)->full_name ?? 'N/A' : 'N/A';
+                if ($fromValue !== $toValue) {
+                    $changes['assignee'] = ['from' => $fromValue, 'to' => $toValue];
                 }
+                continue;
+            }
 
-                $changes[$displayKey] = [
-                    'from' => $fromValue,
-                    'to' => $toValue,
+            if ($originalValue != $newValue) {
+                $changes[$key] = [
+                    'from' => $originalValue ?? 'N/A',
+                    'to' => $newValue ?? 'N/A',
                 ];
             }
         }
 
-        // Handle division changes separately
+        // Handle division changes
         sort($originalDivisionIds);
         sort($divisionIds);
         if ($originalDivisionIds !== $divisionIds) {
             $originalDivisionNames = Division::whereIn('id', $originalDivisionIds)->pluck('division_name')->toArray();
             $newDivisionNames = Division::whereIn('id', $divisionIds)->pluck('division_name')->toArray();
-            
             $changes['division'] = [
                 'from' => !empty($originalDivisionNames) ? implode(', ', $originalDivisionNames) : 'N/A',
                 'to' => !empty($newDivisionNames) ? implode(', ', $newDivisionNames) : 'N/A',
             ];
         }
 
+        // Update task
         $task->update($newValues);
 
         // Sync divisions
         $task->divisions()->sync($divisionIds);
 
-        // Handle last_action update - update latest or create new if provided
-        if (!empty($validated['last_action']) && isset($validated['last_action'])) {
+        // Handle last_action update
+        if (!empty($validated['last_action'])) {
             $latestUpdate = $task->latestUpdate;
             if ($latestUpdate) {
-                // Update the latest update if text changed
                 if ($latestUpdate->update_text !== $validated['last_action']) {
-                    $latestUpdate->update([
-                        'update_text' => $validated['last_action'],
-                    ]);
+                    $latestUpdate->update(['update_text' => $validated['last_action']]);
                 }
             } else {
-                // Create first update if none exists
                 TaskUpdate::create([
                     'task_id' => $task->id,
                     'update_text' => $validated['last_action'],

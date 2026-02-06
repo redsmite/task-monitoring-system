@@ -154,7 +154,8 @@ export default function Task() {
         last_action: '',
         status: '',
         priority: '',
-        due_date: null
+        due_date: null,
+        created_at: null,
     })
 
     // Edit Task
@@ -175,7 +176,8 @@ export default function Task() {
         status: '',
         priority: '',
         due_date: '',
-        description: ''
+        description: '',
+        created_at: null,
     })
 
     // Completed
@@ -194,7 +196,8 @@ export default function Task() {
         status: '',
         priority: '',
         due_date: '',
-        description: ''
+        description: '',
+        created_at: null,
     })
 
     // Delete Task

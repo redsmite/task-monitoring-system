@@ -23,11 +23,12 @@ class TaskResource extends JsonResource
 
             // Formatted
             'due_date' => $this->due_date ? $this->due_date->format('m/d/Y') : null,
+            'created_at' => $this->created_at ? $this->created_at->format('m/d/Y') : null,
 
             'priority' => match ($this->priority) {
                 'low' => 'Low',
-                'medium' => 'Medium',
-                'high' => 'High',
+                'regular' => 'Regular',
+                'urgent' => 'Urgent',
                 default => $this->priority,
             },
 
