@@ -243,7 +243,7 @@ export default function Sidebar({ open, onClose, task }) {
                             <h1 className="text-3xl font-semibold">History</h1>
                             {!showAddUpdate ? (
                                 <PrimaryButton
-                                    text="➕ Add Update"
+                                    text="➕ Add Action"
                                     onClick={() => setShowAddUpdate(!showAddUpdate)}
                                 />
                             ) : (
@@ -262,7 +262,7 @@ export default function Sidebar({ open, onClose, task }) {
                             <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900 space-y-3">
                                 <PrimaryInput
                                     type="text"
-                                    placeholder="Enter update..."
+                                    placeholder="Enter action..."
                                     value={newUpdateText}
                                     onChange={(e) => setNewUpdateText(e.target.value)}
                                 />
