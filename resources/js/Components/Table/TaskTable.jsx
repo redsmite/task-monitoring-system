@@ -318,9 +318,11 @@ export default function TaskTable({
                 last_action: task.latest_update?.update_text || task.last_action || '',
                 status: formatStatusToDb(task.status) || '',
                 priority: formatPriorityToDb(task.priority) || '',
+                created_at: task.created_at || '',   // 👈 ADD THIS
                 due_date: task.due_date || '',
                 description: task.description || '',
             });
+
 
             return next;
         });
@@ -563,17 +565,24 @@ export default function TaskTable({
 
                                 </SelectInput>
                             </TableData>
-                            <TableData
-                                className="text-center text-gray-400 dark:text-gray-500"
-                            >
-                                TBD
+                            <TableData>
+                                <Datepicker
+                                    value={addData.created_at}
+                                    onChange={(date) =>
+                                        updateAddTaskData("created_at", formatDateToSave(date))
+                                    }
+                                />
                             </TableData>
+
                             <TableData>
                                 <Datepicker
                                     value={addData.due_date}
-                                    onChange={(date) => updateAddTaskData("due_date", formatDateToSave(date))}
+                                    onChange={(date) =>
+                                        updateAddTaskData("due_date", formatDateToSave(date))
+                                    }
                                 />
                             </TableData>
+
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Priority"
@@ -758,20 +767,21 @@ export default function TaskTable({
 
                                     </SelectInput>
                                 </TableData>
-                                <TableData
-                                    className="text-center"
-                                >
-                                    <DateContainer
-                                        bgcolor="bg-blue-200"
-                                        textColor="text-blue-900"
-                                    >
-                                        {task?.created_at || 'N/A'}
-                                    </DateContainer>
+                                <TableData className="text-center">
+                                    <Datepicker
+                                        value={editData?.created_at || task?.created_at || ''}
+                                        onChange={(date) =>
+                                            updateEditTaskData("created_at", formatDateToSave(date))
+                                        }
+                                    />
                                 </TableData>
+
                                 <TableData>
                                     <Datepicker
                                         value={editData?.due_date || task?.due_date || ''}
-                                        onChange={(date) => updateEditTaskData("due_date", formatDateToSave(date))}
+                                        onChange={(date) =>
+                                            updateEditTaskData("due_date", formatDateToSave(date))
+                                        }
                                     />
                                 </TableData>
                                 <TableData>
