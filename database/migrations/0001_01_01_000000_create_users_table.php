@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique()->default('dummy@email.com');
+            $table->string('pin');
+            $table->string('user_type')->default('user');
+            $table->unsignedBigInteger('external_user_id')->nullable()->index();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('pin');
             $table->rememberToken();
             $table->timestamps();
         });
