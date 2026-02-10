@@ -35,14 +35,13 @@ export default function VerifyEmail({ status }) {
                         Resend Verification Email
                     </PrimaryButton>
 
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    <a
+                        href="https://denrncrsys.online/"
+                        target="_self"
+                        className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-800 transition duration-150 ease-in-out"
                     >
-                        Log Out
-                    </Link>
+                        Back to DNIIS
+                    </a>
                 </div>
             </form>
         </GuestLayout>
