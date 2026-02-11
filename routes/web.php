@@ -7,47 +7,46 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Middleware\ExternalSessionAuth;
-use Illuminate\Foundation\Application;
+use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Redirect root to dashboard
 Route::get('/', function () {
     return redirect()->route('dashboard.index');
 })->middleware([ExternalSessionAuth::class]);
 
-
-// Route::get('/dashboard', function () {
-//     return redirect()->route('dashboard.index');
-// })->middleware([ExternalSessionAuth::class, 'auth']);
-
+// Authenticated routes
 Route::middleware([ExternalSessionAuth::class, 'auth'])->group(function () {
-    // Dashboard
-    Route::resource('dashboard', DashboardController::class);
 
-    // Tasks
-    Route::resource('task', TaskController::class);
-    Route::post('task/{task}/updates', [TaskController::class, 'storeUpdate'])->name('task.updates.store');
-    Route::patch('task/{task}/updates/{update}', [TaskController::class, 'updateUpdate'])->name('task.updates.update');
-    Route::delete('task/{task}/updates/{update}', [TaskController::class, 'destroyUpdate'])->name('task.updates.destroy');
-
-    // Assignee
-    Route::resource('assignee', EmployeeController::class);
-
-    // Division
-    Route::resource('division', DivisionsController::class);
-
-    // Timeline
-    Route::resource('timeline', TimelineController::class);
+    // Controllers accessible by ALL users
+    Route::resource('dashboard', DashboardController::class)->only(['index', 'show']);
+    Route::resource('timeline', TimelineController::class)->only(['index', 'show']);
+    Route::resource('employee', EmployeeController::class)->only(['index', 'show']);
+    Route::resource('division', DivisionsController::class)->only(['index', 'show']);
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Test Page
+    // Test page
     Route::get('/test', function() {
         return Inertia::render('test');
     });
+
+    // Admin-only routes for TaskController
+    Route::middleware([AdminMiddleware::class])->group(function () {
+        Route::resource('task', TaskController::class)
+            ->only(['store', 'update', 'destroy']);
+
+        Route::post('task/{task}/updates', [TaskController::class, 'storeUpdate'])->name('task.updates.store');
+        Route::patch('task/{task}/updates/{update}', [TaskController::class, 'updateUpdate'])->name('task.updates.update');
+        Route::delete('task/{task}/updates/{update}', [TaskController::class, 'destroyUpdate'])->name('task.updates.destroy');
+    });
+
+    // Task index and show are accessible to all authenticated users
+    Route::resource('task', TaskController::class)->only(['index', 'show']);
 });
 
 require __DIR__.'/auth.php';

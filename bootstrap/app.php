@@ -14,9 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            // \App\Http\Middleware\AdminMiddleware::class, // Admin-only middleware
+            \App\Http\Middleware\DivisionViewMiddleware::class, // Division filter middleware
         ]);
-
-        //
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
