@@ -32,14 +32,14 @@ export default function PinLogin() {
                             />
                         </div>
                         <div className="space-y-3">
-                            <p className="font-medium text-2xl md:text-3xl text-center">
+                            <p className="font-large text-2xl md:text-3xl text-center">
                                 Task Management System
                             </p>
-                            <p className="text-gray-600 text-center dark:text-gray-200">
+                            {/* <p className="text-gray-600 text-center dark:text-gray-200">
                                 Please enter your password to login
-                            </p>
+                            </p> */}
                         </div>
-                        <form className="w-full space-y-4">
+                        {/* <form className="w-full space-y-4">
                             <PrimaryInput
                                 type="password"
                                 placeholder="Password"
@@ -58,7 +58,7 @@ export default function PinLogin() {
                                 <span className="text-green-600 dark:text-green-300"> DENR NCR </span>
                                 employees only.
                             </p>
-                        </form>
+                        </form> */}
                         <div className="mt-60 flex items-center justify-center gap-3">
                             <span className="text-green-600 font-semibold dark:text-green-400"> © DENR NCR 2025</span>
                             <span className="text-green-600 font-semibold dark:text-green-400">|</span>
