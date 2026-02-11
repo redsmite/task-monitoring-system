@@ -12,43 +12,55 @@ class ExternalSessionAuth
 {
     public function handle(Request $request, Closure $next)
     {
-        // Already logged in
         if (Auth::check()) {
             return $next($request);
         }
 
-        // Get session_id from URL query
         $sessionId = $request->query('session_id');
 
         if (!$sessionId) {
             return $next($request);
         }
 
-        // Look up external session in secondary DB
-    $external = DB::connection('denr_ncr')
-        ->table('core_session as s')
-        ->join('core_users as u', 's.userid', '=', 'u.id')
-        ->select('u.id as external_id', 'u.username')
-        ->where('s.session_id', $sessionId)
-        ->first();
+        $external = DB::connection('denr_ncr')
+            ->table('core_session as s')
+            ->join('core_users as u', 's.userid', '=', 'u.id')
+            ->select(
+                'u.id as external_id',
+                'u.username',
+                'u.first_name',
+                'u.middle_name',
+                'u.last_name',
+                'u.current_position as position' // ← important
+            )
+            ->where('s.session_id', $sessionId)
+            ->first();
 
         if ($external) {
-            // Find Laravel user mapped to external_user_id
+
             $user = User::where('external_user_id', $external->external_id)->first();
 
             if (!$user) {
-                // Auto-create Laravel user if it doesn't exist
                 $user = User::create([
                     'name' => $external->username,
-                    'email' => $external->username.'@example.com', // default email
-                    'password' => bcrypt('defaultpassword'),      // default password
-                    'pin' => bcrypt('1234'),                      // default pin
+                    'first_name' => $external->first_name,
+                    'last_name' => $external->last_name,
+                    'position' => $external->position,
+                    'email' => $external->username.'@example.com',
+                    'password' => bcrypt('defaultpassword'),
+                    'pin' => bcrypt('1234'),
                     'user_type' => 'user',
                     'external_user_id' => $external->external_id,
                 ]);
+            } else {
+                // keep synced
+                $user->update([
+                    'first_name' => $external->first_name,
+                    'last_name' => $external->last_name,
+                    'position' => $external->position,
+                ]);
             }
 
-            // Log in the Laravel user
             Auth::login($user);
         }
 
