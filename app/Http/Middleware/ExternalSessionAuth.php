@@ -3,10 +3,12 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class ExternalSessionAuth
 {
@@ -31,7 +33,8 @@ class ExternalSessionAuth
                 'u.first_name',
                 'u.middle_name',
                 'u.last_name',
-                'u.current_position as position' // ← important
+                'u.current_position as position',
+                'u.division',
             )
             ->where('s.session_id', $sessionId)
             ->first();
@@ -46,11 +49,14 @@ class ExternalSessionAuth
                     'first_name' => $external->first_name,
                     'last_name' => $external->last_name,
                     'position' => $external->position,
+                    'division_id' => $external->division,
                     'email' => $external->username.'@example.com',
-                    'password' => bcrypt('defaultpassword'),
-                    'pin' => bcrypt('1234'),
+                    'email_verified_at' => now(),
+                    'password' => Hash::make('defaultpassword'),
+                    'pin' => Hash::make('1234'),
                     'user_type' => 'user',
                     'external_user_id' => $external->external_id,
+                    'remember_token' => Str::random(10),
                 ]);
             } else {
                 // keep synced
