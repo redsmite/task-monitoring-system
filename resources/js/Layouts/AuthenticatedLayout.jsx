@@ -75,11 +75,11 @@ export default function AuthenticatedLayout({ header, children }) {
                                             </span>
                                         </Dropdown.Trigger>
                                         <Dropdown.Content>
-                                            <Dropdown.Link
+                                            {/* <Dropdown.Link
                                                 href={route('profile.edit')}
                                             >
                                                 Profile
-                                            </Dropdown.Link>
+                                            </Dropdown.Link> */}
                                             <a
                                                 href="https://denrncrsys.online/"
                                                 target="_self"
@@ -188,9 +188,9 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
 
                             <div className="mt-3 space-y-1">
-                                <ResponsiveNavLink href={route('profile.edit')}>
+                                {/* <ResponsiveNavLink href={route('profile.edit')}>
                                     Profile
-                                </ResponsiveNavLink>
+                                </ResponsiveNavLink> */}
                                 <a
                                     href="https://denrncrsys.online/"
                                     className="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-zinc-800 transition duration-150 ease-in-out"
