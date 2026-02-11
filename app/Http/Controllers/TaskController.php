@@ -91,6 +91,7 @@ class TaskController extends Controller
         )->paginate(15, ['*'], 'completed_page', $completedPage);
 
         return Inertia::render('Task', [
+            'userRole' => auth()->user()->user_type, // 'admin' or 'user'
             'divisions_data' => $divisions,
             'users_data' => $employees,
 

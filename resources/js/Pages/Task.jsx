@@ -17,6 +17,7 @@ export default function Task() {
         completed = [],
         users_data = [],
         divisions_data = [],
+        userRole = 'user',
     } = props;
 
 
@@ -328,6 +329,7 @@ export default function Task() {
                         deleteTask={deleteTask}
                         onRowClick={handleTaskClick}
                         tableType="task_all"
+                        userRole={userRole}
                     />
 
 
@@ -358,6 +360,7 @@ export default function Task() {
                         deleteTask={deleteTask}
                         onRowClick={handleTaskClick}
                         tableType="completed"
+                        userRole={userRole}
                     />
                 </div>
             </MainContainer>

@@ -48,9 +48,11 @@ export default function TaskTable({
     resetEditData,
     editErrors,
     deleteTask,
-    onRowClick
+    onRowClick,
+    userRole = 'user', // 'admin' or 'user'
 }) {
-
+    // Check if admin
+    const isAdmin = userRole === 'admin';
     // Search/Pagination/Ordering/URL //
     // Url
     const queryString = window.location.search;
@@ -496,7 +498,7 @@ export default function TaskTable({
 
             {formattedSortValue(sortValues) === tableType + '_' + 'desc' && tableType + '_page=1' === tableType + '_page=' + page && (
                 <>
-                    {!isAddActive && (
+                    {isAdmin && !isAddActive && (
                         <TableRow
                             onClick={() => ToggleAdd(tableType)}
                         >
@@ -799,7 +801,7 @@ export default function TaskTable({
                         )}
 
                         <ActionData>
-                            {!isEditActive[task.id] && (
+                            {!isEditActive[task.id] && isAdmin &&(
                                 <div className="flex items-center gap-3">
                                     <IconButton
                                         tooltip="Edit Task"
@@ -859,7 +861,7 @@ export default function TaskTable({
 
             {formattedSortValue(sortValues) === tableType + '_' + 'asc' && formattedLastPageValue(paginationLastPage) === tableType + '_page=' + page && (
                 <>
-                    {!isAddActive && (
+                    {isAdmin && !isAddActive && (
                         <TableRow
                             onClick={() => ToggleAdd(tableType)}
                         >
