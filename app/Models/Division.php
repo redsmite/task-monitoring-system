@@ -16,7 +16,7 @@ class Division extends Model
     ];
 
     // Division <- Employees
-    public function employee()
+    public function user()
     {
         return $this->hasMany(User::class);
     }

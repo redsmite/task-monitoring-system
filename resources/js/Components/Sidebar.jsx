@@ -24,6 +24,7 @@ export default function Sidebar({ open, onClose, task }) {
     const [editUpdateText, setEditUpdateText] = useState("");
     const [newUpdateText, setNewUpdateText] = useState("");
     const [showAddUpdate, setShowAddUpdate] = useState(false);
+    const assignee = currentTask?.user || task?.user;
 
     // Fetch full task data with updates when sidebar opens
     useEffect(() => {
@@ -155,7 +156,11 @@ export default function Sidebar({ open, onClose, task }) {
                             <h1 className="text-md font-semibold">👤Assigned To</h1>
                         </div>
                         <div className="flex flex-1 justify-center items-center">
-                            <p className="text-violet-500 font-semibold">{(currentTask?.user || task?.user) ? `${(currentTask?.user || task?.employee).first_name} ${(currentTask?.employee || task?.employee).last_name}` : "Not assigned"}</p>
+                           <p className="text-violet-500 font-semibold">
+                                {assignee
+                                    ? `${assignee.first_name} ${assignee.last_name}`
+                                    : "Not assigned"}
+                            </p>
                         </div>
                     </div>
 
