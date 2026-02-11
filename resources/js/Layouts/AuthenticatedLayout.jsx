@@ -38,7 +38,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     >
                                         Tasks
                                     </NavLink>
-                                    <NavLink
+                                    {/* <NavLink
                                         href={route('assignee.index')}
                                         active={route().current('assignee.index')}
                                     >
@@ -49,7 +49,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         active={route().current('division.index')}
                                     >
                                         Divisions
-                                    </NavLink>
+                                    </NavLink> */}
                                     <NavLink
                                         href={route('timeline.index')}
                                         active={route().current('timeline.index')}
@@ -157,7 +157,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             >
                                 Tasks
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink
+                            {/* <ResponsiveNavLink
                                 href={route('assignee.index')}
                                 active={route().current('assignee.index')}
                             >
@@ -168,7 +168,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 active={route().current('division.index')}
                             >
                                 Divisions
-                            </ResponsiveNavLink>
+                            </ResponsiveNavLink> */}
                             <ResponsiveNavLink
                                 href={route('timeline.index')}
                                 active={route().current('timeline.index')}
