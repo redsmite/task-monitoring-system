@@ -6,18 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'external_user_id')) {
-                $table->unsignedBigInteger('external_user_id')->nullable();
+            if (!Schema::hasColumn('users', 'first_name')) {
+                $table->string('first_name')->nullable()->after('name');
             }
-
-            if (!Schema::hasColumn('users', 'user_type')) {
-                $table->string('user_type')->default('user');
+            if (!Schema::hasColumn('users', 'last_name')) {
+                $table->string('last_name')->nullable()->after('first_name');
             }
         });
     }
@@ -25,8 +21,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('external_user_id');
-            $table->dropColumn('user_type');
+            $table->dropColumn(['first_name', 'last_name']);
         });
     }
 };

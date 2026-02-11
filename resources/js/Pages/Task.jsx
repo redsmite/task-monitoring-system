@@ -15,7 +15,7 @@ export default function Task() {
     const {
         taskAll = [],
         completed = [],
-        employees_data = [],
+        users_data = [],
         divisions_data = [],
     } = props;
 
@@ -88,7 +88,7 @@ export default function Task() {
             router.get(route('task.index'), currentParams, {
                 preserveState: true,
                 preserveScroll: true,
-                only: ['taskAll', 'completed', 'employees_data', 'divisions_data'],
+                only: ['taskAll', 'completed', 'users_data', 'divisions_data'],
             });
         }, 30000); // 30 seconds
 
@@ -244,7 +244,7 @@ export default function Task() {
                         open={drawerOpen}
                         onClose={handleDrawerClose}
                         task={viewedTask}
-                        employees_data={employees_data}
+                        users_data={users_data}
                         divisions_data={divisions_data}
                         editData={editDataTaskAll}
                         setEditData={setEditDataTaskAll}
@@ -306,7 +306,7 @@ export default function Task() {
                         tableTitle="Tasks"
                         tableIcon="📄"
                         data={taskAll.data}
-                        employees_data={employees_data}
+                        users_data={users_data}
                         divisions_data={divisions_data}
                         paginationLinks={taskAll.links}
                         paginationCurrentPage={taskAll.current_page}
@@ -336,7 +336,7 @@ export default function Task() {
                         borderColor="border-green-600"
                         tableIcon="✅"
                         data={completed.data}
-                        employees_data={employees_data}
+                        users_data={users_data}
                         divisions_data={divisions_data}
                         paginationLinks={completed.links}
                         paginationCurrentPage={completed.current_page}

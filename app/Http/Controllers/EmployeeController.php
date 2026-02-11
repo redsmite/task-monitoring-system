@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee;
+use App\Models\User;
 use App\Models\Division;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -23,7 +23,7 @@ class EmployeeController extends Controller
             $sort = 'asc';
         }
 
-        $query = Employee::with('division');
+        $query = User::with('division')->where('user_type', 'user');
 
         // Apply search filter
         if (!empty($search)) {
@@ -66,7 +66,7 @@ class EmployeeController extends Controller
             'division_id' => 'required|exists:divisions,id',
         ]);
 
-        Employee::create([
+        User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
             'position' => $validated['position'],
@@ -79,7 +79,7 @@ class EmployeeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Employee $assignee)
+    public function show(User $assignee)
     {
         //
     }
@@ -87,7 +87,7 @@ class EmployeeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Employee $assignee)
+    public function edit(User $assignee)
     {
         //
     }
@@ -95,7 +95,7 @@ class EmployeeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Employee $assignee)
+    public function update(Request $request, User $assignee)
     {
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -116,7 +116,7 @@ class EmployeeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Employee $assignee)
+    public function destroy(User $assignee)
     {
         $assignee->delete();
 

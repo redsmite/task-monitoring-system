@@ -19,7 +19,7 @@ export default function TaskDrawer({
     open,
     onClose,
     task,
-    employees_data = [],
+    users_data = [],
     divisions_data = [],
     editData,
     setEditData,
@@ -160,7 +160,7 @@ export default function TaskDrawer({
 
             setEditData({
                 task_name: taskToUse.name || '',
-                assignee: taskToUse.employee?.id ? String(taskToUse.employee.id) : '',
+                assignee: taskToUse.user?.id ? String(taskToUse.user.id) : '',
                 division: divisionIds,
                 last_action: taskToUse.latest_update?.update_text || taskToUse.last_action || '',
                 status: formatStatusToDb(taskToUse.status) || '',
@@ -320,9 +320,9 @@ export default function TaskDrawer({
                                 onChange={(value) => updateFormData("assignee", value)}
                                 error={currentErrors?.assignee}
                             >
-                                {employees_data.map((employee) => (
-                                    <SelectItem key={employee.id} value={String(employee.id)}>
-                                        {employee.first_name} {employee.last_name}
+                                {users_data.map((user) => (
+                                    <SelectItem key={user.id} value={String(user.id)}>
+                                        {user.first_name} {user.last_name}
                                     </SelectItem>
                                 ))}
                             </SelectInput>
@@ -455,7 +455,7 @@ export default function TaskDrawer({
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
                                     <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">👤 Assigned To</h4>
                                     <p className="text-violet-500 dark:text-violet-400 font-semibold text-sm">
-                                        {(currentTask?.employee || task?.employee) ? `${(currentTask?.employee || task?.employee).first_name} ${(currentTask?.employee || task?.employee).last_name}` : "Not assigned"}
+                                        {(currentTask?.user || task?.user) ? `${(currentTask?.user || task?.user).first_name} ${(currentTask?.user || task?.user).last_name}` : "Not assigned"}
                                     </p>
                                 </div>
 

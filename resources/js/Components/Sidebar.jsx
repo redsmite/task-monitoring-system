@@ -155,7 +155,7 @@ export default function Sidebar({ open, onClose, task }) {
                             <h1 className="text-md font-semibold">👤Assigned To</h1>
                         </div>
                         <div className="flex flex-1 justify-center items-center">
-                            <p className="text-violet-500 font-semibold">{(currentTask?.employee || task?.employee) ? `${(currentTask?.employee || task?.employee).first_name} ${(currentTask?.employee || task?.employee).last_name}` : "Not assigned"}</p>
+                            <p className="text-violet-500 font-semibold">{(currentTask?.user || task?.user) ? `${(currentTask?.user || task?.employee).first_name} ${(currentTask?.employee || task?.employee).last_name}` : "Not assigned"}</p>
                         </div>
                     </div>
 

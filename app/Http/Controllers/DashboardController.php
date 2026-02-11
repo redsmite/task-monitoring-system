@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $totalTasks = Task::count();
 
         // Recent tasks (last 10)
-        $recentTasks = Task::with('divisions', 'employee')
+        $recentTasks = Task::with('divisions', 'user')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();

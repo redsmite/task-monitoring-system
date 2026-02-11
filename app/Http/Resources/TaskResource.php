@@ -53,10 +53,10 @@ class TaskResource extends JsonResource
                 ];
             }),
 
-            'employee' => $this->employee ? [
-                'id' => $this->employee->id,
-                'first_name' => $this->employee->first_name,
-                'last_name' => $this->employee->last_name,
+            'user' => $this->user ? [
+                'id' => $this->user->id,
+                'first_name' => $this->user->first_name,
+                'last_name' => $this->user->last_name,
             ] : null,
 
             // Latest update for display in tables/lists

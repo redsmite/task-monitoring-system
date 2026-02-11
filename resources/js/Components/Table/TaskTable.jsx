@@ -27,7 +27,7 @@ export default function TaskTable({
     tableIcon = "icon",
     tableTitle = "tableTitle",
     data,
-    employees_data,
+    users_data,
     divisions_data,
     paginationLinks = [],
     paginationCurrentPage,
@@ -313,7 +313,7 @@ export default function TaskTable({
 
             setEditData({
                 task_name: task.name || '',
-                assignee: task.employee?.id ? String(task.employee.id) : '',
+                assignee: task.user?.id ? String(task.user.id) : '',
                 division: divisionIds,
                 last_action: task.latest_update?.update_text || task.last_action || '',
                 status: formatStatusToDb(task.status) || '',
@@ -529,12 +529,11 @@ export default function TaskTable({
                                     value={addData.assignee || ''}
                                     onChange={(value) => updateAddTaskData("assignee", value)}
                                 >
-                                    {employees_data.map((employee) => (
-                                        <SelectItem key={employee.id} value={String(employee.id)}>
-                                            {employee.last_name} {employee.first_name}
+                                    {users_data.map((user) => (
+                                        <SelectItem key={user.id} value={String(user.id)}>
+                                            {user.last_name} {user.first_name}
                                         </SelectItem>
                                     ))}
-
                                 </SelectInput>
                             </TableData>
                             <TableData>
@@ -643,7 +642,7 @@ export default function TaskTable({
                                     {task?.name}
                                 </TableData>
                                 <TableData>
-                                    {task?.employee?.first_name} {task?.employee?.last_name}
+                                    {task?.user?.first_name} {task?.user?.last_name}
                                 </TableData>
                                 <TableData
                                     className="text-center"
@@ -728,16 +727,19 @@ export default function TaskTable({
                                 <TableData>
                                     <SelectInput
                                         placeholder="Select Assignee"
-                                        value={editData?.assignee || (task?.employee?.id ? String(task.employee.id) : '')}
+                                        value={
+                                            editData?.assignee ??
+                                            (task?.user?.id ? String(task.user.id) : '')
+                                        }
                                         onChange={(value) => updateEditTaskData("assignee", value)}
                                     >
-                                        {employees_data.map((employee) => (
-                                            <SelectItem key={employee.id} value={String(employee.id)}>
-                                                {employee.first_name} {employee.last_name}
+                                        {users_data.map((user) => (
+                                            <SelectItem key={user.id} value={String(user.id)}>
+                                                {user.last_name} {user.first_name}
                                             </SelectItem>
                                         ))}
-
                                     </SelectInput>
+
                                 </TableData>
                                 <TableData>
                                     <MultiSelectInput
@@ -887,15 +889,17 @@ export default function TaskTable({
                             <TableData>
                                 <SelectInput
                                     placeholder="Select Assignee"
-                                    value={addData.assignee || ''}
-                                    onChange={(value) => updateAddTaskData("assignee", value)}
+                                    value={
+                                        editData?.assignee ??
+                                        (task?.user?.id ? String(task.user.id) : '')
+                                    }
+                                    onChange={(value) => updateEditTaskData("assignee", value)}
                                 >
-                                    {employees_data.map((employee) => (
-                                        <SelectItem key={employee.id} value={String(employee.id)}>
-                                            {employee.last_name} {employee.first_name}
+                                    {users_data.map((user) => (
+                                        <SelectItem key={user.id} value={String(user.id)}>
+                                            {user.last_name} {user.first_name}
                                         </SelectItem>
                                     ))}
-
                                 </SelectInput>
                             </TableData>
                             <TableData>

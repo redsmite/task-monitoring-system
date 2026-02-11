@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\TaskResource;
 use App\Models\Activity;
 use App\Models\Division;
-use App\Models\Employee;
+use App\Models\User;
 use App\Models\Task;
 use App\Models\TaskUpdate;
 use App\Http\Controllers\Controller;
@@ -21,7 +21,7 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $divisions = Division::all();
-        $employees = Employee::orderBy('last_name', 'asc')->get();
+        $employees = User::orderBy('last_name', 'asc')->get();
 
         // Get page numbers for each table separately
         $taskAllPage = $request->get('task_all_page', 1);
@@ -57,7 +57,7 @@ class TaskController extends Controller
                         ->orWhereHas('updates', function ($updateQuery) use ($search) {
                             $updateQuery->where('update_text', 'like', '%' . $search . '%');
                         })
-                        ->orWhereHas('employee', function ($empQuery) use ($search) {
+                        ->orWhereHas('user', function ($empQuery) use ($search) {
                             $empQuery->where('first_name', 'like', '%' . $search . '%')
                                 ->orWhere('last_name', 'like', '%' . $search . '%');
                         })
@@ -70,7 +70,7 @@ class TaskController extends Controller
         };
 
         // Build taskAll query
-        $taskAllQuery = Task::with('divisions', 'employee', 'latestUpdate')
+        $taskAllQuery = Task::with('divisions', 'user', 'latestUpdate')
             ->whereIn('status', ['not_started', 'in_progress']);
         
         // Apply status filter if provided
@@ -84,7 +84,7 @@ class TaskController extends Controller
         )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
 
         $completed = $applySearch(
-            Task::with('divisions', 'employee', 'latestUpdate')
+            Task::with('divisions', 'user', 'latestUpdate')
                 ->where('status', 'completed')
                 ->orderBy('created_at', $completedSort),
             $completedSearch
@@ -92,7 +92,7 @@ class TaskController extends Controller
 
         return Inertia::render('Task', [
             'divisions_data' => $divisions,
-            'employees_data' => $employees,
+            'users_data' => $employees,
 
             'taskAll' => [
                 'data' => TaskResource::collection($taskAll->items())->resolve(),
@@ -173,7 +173,7 @@ class TaskController extends Controller
 
         $task = Task::create([
             'name' => $validated['task_name'],
-            'employee_id' => $employeeId,
+            'user_id' => $employeeId,
             'last_action' => $validated['last_action'] ?? null,
             'status' => $validated['status'] ?? null,
             'priority' => $validated['priority'] ?? null,
@@ -217,7 +217,7 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        $task->load(['divisions', 'employee', 'updates.user']);
+        $task->load(['divisions', 'user', 'updates.user']);
         
         return response()->json([
             'task' => new TaskResource($task),
@@ -320,7 +320,7 @@ class TaskController extends Controller
         // Prepare new values
         $newValues = [
             'name' => $validated['task_name'],
-            'employee_id' => $employeeId,
+            'user_id' => $employeeId,
             'last_action' => $validated['last_action'] ?? null,
             'status' => $validated['status'] ?? null,
             'priority' => $validated['priority'] ?? null,
@@ -352,9 +352,9 @@ class TaskController extends Controller
                 continue;
             }
 
-            if ($key === 'employee_id') {
-                $fromValue = $originalValue ? Employee::find($originalValue)->full_name ?? 'N/A' : 'N/A';
-                $toValue = $newValue ? Employee::find($newValue)->full_name ?? 'N/A' : 'N/A';
+            if ($key === 'user_id') {
+                $fromValue = $originalValue ? User::find($originalValue)->full_name ?? 'N/A' : 'N/A';
+                $toValue = $newValue ? User::find($newValue)->full_name ?? 'N/A' : 'N/A';
                 if ($fromValue !== $toValue) {
                     $changes['assignee'] = ['from' => $fromValue, 'to' => $toValue];
                 }
