@@ -7,45 +7,120 @@ use App\Http\Resources\TaskResource;
 use App\Models\Division;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index() {
-        // Task counts by status
-        $notStartedCount = Task::where('status', 'not_started')->count();
-        $inProgressCount = Task::where('status', 'in_progress')->count();
-        $completedCount = Task::where('status', 'completed')->count();
-        $totalTasks = Task::count();
+    public function index()
+    {
+        $user = Auth::user();
 
-        // Recent tasks (last 10)
-        $recentTasks = Task::with('divisions', 'user')
+        /*
+        |--------------------------------------------------------------------------
+        | Base Query (division filtering)
+        |--------------------------------------------------------------------------
+        */
+
+        $taskQuery = Task::query();
+
+        // If NOT admin → only show tasks in user's division
+        if ($user->user_type !== 'admin') {
+            $taskQuery->whereHas('divisions', function ($q) use ($user) {
+                $q->where('division_id', $user->division_id);
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Counts
+        |--------------------------------------------------------------------------
+        */
+
+        $notStartedCount = (clone $taskQuery)
+            ->where('status', 'not_started')
+            ->count();
+
+        $inProgressCount = (clone $taskQuery)
+            ->where('status', 'in_progress')
+            ->count();
+
+        $completedCount = (clone $taskQuery)
+            ->where('status', 'completed')
+            ->count();
+
+        $totalTasks = (clone $taskQuery)->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Recent Tasks
+        |--------------------------------------------------------------------------
+        */
+
+        $recentTasks = (clone $taskQuery)
+            ->with('divisions', 'user')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
-        // Tasks by division
-        $tasksByDivision = Division::withCount('tasks')
-            ->having('tasks_count', '>', 0)
-            ->orderBy('tasks_count', 'desc')
-            ->get()
-            ->map(function ($division) {
-                return [
-                    'id' => $division->id,
-                    'division_name' => $division->division_name,
-                    'division_color' => $division->division_color,
-                    'total_tasks' => $division->tasks_count,
-                    'not_started' => Task::whereHas('divisions', function($query) use ($division) {
-                        $query->where('divisions.id', $division->id);
-                    })->where('status', 'not_started')->count(),
-                    'in_progress' => Task::whereHas('divisions', function($query) use ($division) {
-                        $query->where('divisions.id', $division->id);
-                    })->where('status', 'in_progress')->count(),
-                    'completed' => Task::whereHas('divisions', function($query) use ($division) {
-                        $query->where('divisions.id', $division->id);
-                    })->where('status', 'completed')->count(),
-                ];
+        /*
+        |--------------------------------------------------------------------------
+        | Tasks by Division
+        |--------------------------------------------------------------------------
+        */
+
+        if ($user->user_type === 'admin') {
+            // Admin → show all divisions
+            $divisions = Division::withCount('tasks')
+                ->having('tasks_count', '>', 0)
+                ->orderBy('tasks_count', 'desc')
+                ->get();
+        } else {
+            // User → only their division
+            $divisions = Division::where('id', $user->division_id)
+                ->withCount('tasks')
+                ->get();
+        }
+
+        $tasksByDivision = $divisions->map(function ($division) use ($user) {
+
+            $base = Task::whereHas('divisions', function ($q) use ($division) {
+                $q->where('divisions.id', $division->id);
             });
+
+            // If user → extra safety filter
+            if ($user->user_type !== 'admin') {
+                $base->whereHas('divisions', function ($q) use ($user) {
+                    $q->where('division_id', $user->division_id);
+                });
+            }
+
+            return [
+                'id' => $division->id,
+                'division_name' => $division->division_name,
+                'division_color' => $division->division_color,
+
+                'total_tasks' => (clone $base)->count(),
+
+                'not_started' => (clone $base)
+                    ->where('status', 'not_started')
+                    ->count(),
+
+                'in_progress' => (clone $base)
+                    ->where('status', 'in_progress')
+                    ->count(),
+
+                'completed' => (clone $base)
+                    ->where('status', 'completed')
+                    ->count(),
+            ];
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Render
+        |--------------------------------------------------------------------------
+        */
 
         return Inertia::render('Dashboard', [
             'task_counts' => [
@@ -56,6 +131,7 @@ class DashboardController extends Controller
             ],
             'recent_tasks' => TaskResource::collection($recentTasks)->resolve(),
             'tasks_by_division' => $tasksByDivision,
+            'userRole' => $user->user_type,
         ]);
     }
 }
