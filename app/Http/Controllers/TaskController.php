@@ -131,33 +131,56 @@ class TaskController extends Controller
     /**
      * STORE
      */
-    public function store(Request $request)
-    {
-        if (auth()->user()->user_type !== 'admin') {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'task_name' => 'required|string|max:255',
-            'assignee' => 'nullable',
-            'division' => 'required',
-            'status' => 'required',
-        ]);
-
-        $task = Task::create([
-            'name' => $validated['task_name'],
-            'user_id' => $validated['assignee'],
-            'status' => $validated['status'],
-        ]);
-
-        $divisionIds = is_array($validated['division'])
-            ? $validated['division']
-            : [$validated['division']];
-
-        $task->divisions()->sync($divisionIds);
-
-        return back()->with('success', 'Task created');
+public function store(Request $request)
+{
+    // 🔒 Only admin can create
+    if (auth()->user()->user_type !== 'admin') {
+        abort(403);
     }
+
+    $validated = $request->validate([
+        'task_name'   => 'required|string|max:255',
+        'assignee'    => 'nullable',
+        'division'    => 'required', // array or single
+        'last_action' => 'nullable|string|max:255',
+        'status'      => 'required|string|max:255',
+        'priority'    => 'nullable|string|max:255',
+        'created_at'  => 'sometimes|nullable|date',
+        'due_date'    => 'nullable|date',
+        'description' => 'nullable|string',
+    ]);
+
+    // Normalize dates
+    $createdAt = !empty($validated['created_at'])
+        ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay()
+        : now();
+
+    $dueDate = !empty($validated['due_date'])
+        ? \Carbon\Carbon::parse($validated['due_date'])->startOfDay()
+        : null;
+
+    $task = Task::create([
+        'name'        => $validated['task_name'],
+        'user_id'     => $validated['assignee'] ?? null,
+        'last_action' => $validated['last_action'] ?? null,
+        'status'      => $validated['status'],
+        'priority'    => $validated['priority'] ?? null,
+        'description' => $validated['description'] ?? null,
+        'due_date'    => $dueDate,
+        'created_at'  => $createdAt,
+        'updated_at'  => $createdAt,
+    ]);
+
+    // Handle divisions
+    $divisionIds = is_array($validated['division'])
+        ? $validated['division']
+        : [$validated['division']];
+
+    $task->divisions()->sync($divisionIds);
+
+    return back()->with('success', 'Task created');
+}
+
 
     /**
      * SHOW
@@ -178,37 +201,62 @@ class TaskController extends Controller
     /**
      * UPDATE
      */
-    public function update(Request $request, Task $task)
-    {
-        if (!$this->userCanAccessTask($task)) {
-            abort(403);
-        }
-
-        if (auth()->user()->user_type !== 'admin') {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'task_name' => 'sometimes|required',
-            'division' => 'sometimes',
-            'status' => 'sometimes',
-        ]);
-
-        $task->update([
-            'name' => $validated['task_name'] ?? $task->name,
-            'status' => $validated['status'] ?? $task->status,
-        ]);
-
-        if (isset($validated['division'])) {
-            $divisionIds = is_array($validated['division'])
-                ? $validated['division']
-                : [$validated['division']];
-
-            $task->divisions()->sync($divisionIds);
-        }
-
-        return back()->with('success', 'Task updated');
+public function update(Request $request, Task $task)
+{
+    // 🔒 Must belong to user's division OR admin
+    if (!$this->userCanAccessTask($task)) {
+        abort(403);
     }
+
+    // 🔒 Only admin can update
+    if (auth()->user()->user_type !== 'admin') {
+        abort(403);
+    }
+
+    $validated = $request->validate([
+        'task_name'   => 'sometimes|required|string|max:255',
+        'assignee'    => 'sometimes|nullable',
+        'division'    => 'sometimes',
+        'last_action' => 'sometimes|nullable|string|max:255',
+        'status'      => 'sometimes|string|max:255',
+        'priority'    => 'sometimes|nullable|string|max:255',
+        'created_at'  => 'sometimes|nullable|date',
+        'due_date'    => 'sometimes|nullable|date',
+        'description' => 'sometimes|nullable|string',
+    ]);
+
+    // Normalize dates
+    $createdAt = isset($validated['created_at'])
+        ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay()
+        : $task->created_at;
+
+    $dueDate = isset($validated['due_date'])
+        ? \Carbon\Carbon::parse($validated['due_date'])->startOfDay()
+        : $task->due_date;
+
+    $task->update([
+        'name'        => $validated['task_name'] ?? $task->name,
+        'user_id'     => $validated['assignee'] ?? $task->user_id,
+        'last_action' => $validated['last_action'] ?? $task->last_action,
+        'status'      => $validated['status'] ?? $task->status,
+        'priority'    => $validated['priority'] ?? $task->priority,
+        'description' => $validated['description'] ?? $task->description,
+        'created_at'  => $createdAt,
+        'due_date'    => $dueDate,
+    ]);
+
+    // Sync divisions if provided
+    if (isset($validated['division'])) {
+        $divisionIds = is_array($validated['division'])
+            ? $validated['division']
+            : [$validated['division']];
+
+        $task->divisions()->sync($divisionIds);
+    }
+
+    return back()->with('success', 'Task updated');
+}
+
 
     /**
      * DELETE
