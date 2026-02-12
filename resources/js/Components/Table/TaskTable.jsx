@@ -49,7 +49,7 @@ export default function TaskTable({
     editErrors,
     deleteTask,
     onRowClick,
-    userRole = 'user', // 'admin' or 'user'
+    userRole = 'user',
 }) {
     // Check if admin
     const isAdmin = userRole === 'admin';
@@ -248,11 +248,14 @@ export default function TaskTable({
 
     // Add
     const updateAddTaskData = (field, value) => {
-        setDataAdd((data) => ({
-            ...data,
-            [field]: value,
-        }))
-    }
+        // If assignee/division, map to string IDs
+        if (field === "assignee" || field === "division") {
+            const normalized = value.map(v => String(v));
+            setDataAdd((data) => ({ ...data, [field]: normalized }));
+        } else {
+            setDataAdd((data) => ({ ...data, [field]: value }));
+        }
+    };
 
     // Save Add
     const saveAdd = () => {
@@ -292,44 +295,37 @@ export default function TaskTable({
     // Set
     const ToggleEdit = (task) => {
         setIsEditActive((prev) => {
-            const isCurrentlyOpen = !!prev[task.id];
+            const next = { [task.id]: !prev[task.id] };
 
-            if (isCurrentlyOpen) {
-                // Close this row
-                const next = { ...prev };
-                delete next[task.id];
-                // optional: also clear form state here
-                // setEditData({});
-                return next;
-            }
-
-            // Open this row and close all others
-            const next = { [task.id]: true };
-
-            // Seed form data when opening
-            const divisionIds = task.divisions && task.divisions.length > 0
-                ? task.divisions.map(d => String(d.id))
-                : task.division?.id
-                    ? [String(task.division.id)]
+            // Map users to array of string IDs
+            const assigneeIds =
+                task.users && task.users.length > 0
+                    ? task.users.map(u => String(u.id))
                     : [];
+
+            // Map divisions to array of string IDs
+            const divisionIds =
+                task.divisions && task.divisions.length > 0
+                    ? task.divisions.map(d => String(d.id))
+                    : task.division?.id
+                        ? [String(task.division.id)]
+                        : [];
 
             setEditData({
                 task_name: task.name || '',
-                assignee: task.user?.id ? String(task.user.id) : '',
+                assignee: assigneeIds,
                 division: divisionIds,
                 last_action: task.latest_update?.update_text || task.last_action || '',
                 status: formatStatusToDb(task.status) || '',
                 priority: formatPriorityToDb(task.priority) || '',
-                created_at: task.created_at || '',   // 👈 ADD THIS
+                created_at: task.created_at || '',
                 due_date: task.due_date || '',
                 description: task.description || '',
             });
 
-
             return next;
         });
     };
-
 
     // Edit
     // useForm setData is async; use the callback form to avoid stale reads
@@ -526,24 +522,27 @@ export default function TaskTable({
 
                             </TableData>
                             <TableData>
-                                <SelectInput
+                                <MultiSelectInput
+                                    label="Assignee"
                                     placeholder="Select Assignee"
-                                    value={addData.assignee || ''}
-                                    onChange={(value) => updateAddTaskData("assignee", value)}
-                                >
-                                    {users_data.map((user) => (
-                                        <SelectItem key={user.id} value={String(user.id)}>
-                                            {user.last_name} {user.first_name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectInput>
+                                    options={users_data} // [{id, name}]
+                                    value={Array.isArray(addData.assignee) ? addData.assignee : []} // Always array
+                                    onChange={(values) => updateAddTaskData("assignee", values)}
+                                />
                             </TableData>
+
                             <TableData>
                                 <MultiSelectInput
                                     placeholder="Select Division"
-                                    options={divisions_data}
-                                    value={Array.isArray(addData.division) ? addData.division : addData.division ? [addData.division] : []}
-                                    onChange={(value) => updateAddTaskData("division", value)}
+                                    options={divisions_data} // [{id, division_name}]
+                                    value={
+                                        Array.isArray(addData.division)
+                                            ? addData.division
+                                            : addData.division
+                                                ? [addData.division]
+                                                : []
+                                    }
+                                    onChange={(values) => updateAddTaskData("division", values)}
                                 />
                             </TableData>
                             <TableData>
@@ -644,7 +643,11 @@ export default function TaskTable({
                                     {task?.name}
                                 </TableData>
                                 <TableData>
-                                    {task?.user?.first_name} {task?.user?.last_name}
+                                {task?.users && task.users.length > 0
+                                    ? task.users.map(u => `${u.first_name} ${u.last_name}`).join(', ')
+                                    : task?.user
+                                    ? `${task.user.first_name} ${task.user.last_name}`
+                                    : 'Unassigned'}
                                 </TableData>
                                 <TableData
                                     className="text-center"
@@ -727,28 +730,31 @@ export default function TaskTable({
 
                                 </TableData>
                                 <TableData>
-                                    <SelectInput
+                                    <MultiSelectInput
+                                        label="Assignee"
                                         placeholder="Select Assignee"
-                                        value={
-                                            editData?.assignee ??
-                                            (task?.user?.id ? String(task.user.id) : '')
-                                        }
-                                        onChange={(value) => updateEditTaskData("assignee", value)}
-                                    >
-                                        {users_data.map((user) => (
-                                            <SelectItem key={user.id} value={String(user.id)}>
-                                                {user.last_name} {user.first_name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectInput>
-
+                                        options={users_data} 
+                                        value={Array.isArray(editData.assignee) ? editData.assignee : []}
+                                        onChange={(values) => updateEditTaskData("assignee", values)}
+                                    />
                                 </TableData>
+
                                 <TableData>
                                     <MultiSelectInput
                                         placeholder="Select Division"
                                         options={divisions_data}
-                                        value={Array.isArray(editData?.division) ? editData.division : editData?.division ? [editData.division] : (task?.divisions && task.divisions.length > 0 ? task.divisions.map(d => String(d.id)) : task?.division?.id ? [String(task.division.id)] : [])}
-                                        onChange={(value) => updateEditTaskData("division", value)}
+                                        value={
+                                            Array.isArray(editData.division)
+                                                ? editData.division
+                                                : editData.division
+                                                    ? [editData.division]
+                                                    : task?.divisions && task.divisions.length > 0
+                                                        ? task.divisions.map(d => String(d.id))
+                                                        : task?.division?.id
+                                                            ? [String(task.division.id)]
+                                                            : []
+                                        }
+                                        onChange={(values) => updateEditTaskData("division", values)}
                                     />
                                 </TableData>
                                 <TableData>
@@ -801,7 +807,7 @@ export default function TaskTable({
                         )}
 
                         <ActionData>
-                            {!isEditActive[task.id] && isAdmin &&(
+                            {!isEditActive[task.id] && isAdmin && (
                                 <div className="flex items-center gap-3">
                                     <IconButton
                                         tooltip="Edit Task"
@@ -889,27 +895,30 @@ export default function TaskTable({
 
                             </TableData>
                             <TableData>
-                                <SelectInput
+                                <MultiSelectInput
+                                    label="Assignee"
                                     placeholder="Select Assignee"
-                                    value={
-                                        editData?.assignee ??
-                                        (task?.user?.id ? String(task.user.id) : '')
-                                    }
-                                    onChange={(value) => updateEditTaskData("assignee", value)}
-                                >
-                                    {users_data.map((user) => (
-                                        <SelectItem key={user.id} value={String(user.id)}>
-                                            {user.last_name} {user.first_name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectInput>
+                                    options={users_data} 
+                                    value={Array.isArray(editData.assignee) ? editData.assignee : []}
+                                    onChange={(values) => updateEditTaskData("assignee", values)}
+                                />
                             </TableData>
                             <TableData>
                                 <MultiSelectInput
                                     placeholder="Select Division"
                                     options={divisions_data}
-                                    value={Array.isArray(addData.division) ? addData.division : addData.division ? [addData.division] : []}
-                                    onChange={(value) => updateAddTaskData("division", value)}
+                                    value={
+                                        Array.isArray(editData.division)
+                                            ? editData.division
+                                            : editData.division
+                                                ? [editData.division]
+                                                : task?.divisions && task.divisions.length > 0
+                                                    ? task.divisions.map(d => String(d.id))
+                                                    : task?.division?.id
+                                                        ? [String(task.division.id)]
+                                                        : []
+                                    }
+                                    onChange={(values) => updateEditTaskData("division", values)}
                                 />
                             </TableData>
                             <TableData>

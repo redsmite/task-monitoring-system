@@ -53,11 +53,13 @@ class TaskResource extends JsonResource
                 ];
             }),
 
-            'user' => $this->user ? [
-                'id' => $this->user->id,
-                'first_name' => $this->user->first_name,
-                'last_name' => $this->user->last_name,
-            ] : null,
+            'users' => $this->users->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                ];
+            }),
 
             // Latest update for display in tables/lists
             'latest_update' => $this->latestUpdate ? [

@@ -38,14 +38,17 @@ Route::middleware([ExternalSessionAuth::class])->group(function () {
             Route::resource('task', TaskController::class)
                 ->only(['store','update','destroy']);
 
-            Route::post('task/{task}/updates', [TaskController::class,'storeUpdate']);
-            Route::patch('task/{task}/updates/{update}', [TaskController::class,'updateUpdate']);
-            Route::delete('task/{task}/updates/{update}', [TaskController::class,'destroyUpdate']);
+            Route::prefix('task/{task}/updates')->name('task.updates.')->group(function () {
+                Route::post('/', [TaskController::class, 'storeUpdate'])->name('store');
+                Route::patch('/{update}', [TaskController::class, 'updateUpdate'])->name('update');
+                Route::delete('/{update}', [TaskController::class, 'destroyUpdate'])->name('destroy');
+            });
 
             Route::resource('timeline', TimelineController::class)->only(['index','show']);
             Route::resource('employee', EmployeeController::class)->only(['index','show']);
             Route::resource('division', DivisionsController::class)->only(['index','show']);
         });
+
 
     });
 

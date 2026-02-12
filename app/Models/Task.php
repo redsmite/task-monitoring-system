@@ -13,7 +13,6 @@ class Task extends Model
     protected $fillable = [
         'name',
         'description',
-        'user_id',
         'last_action',
         'status',
         'priority',
@@ -49,6 +48,13 @@ class Task extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'task_user')
+            ->withTimestamps();
+    }
+
 
     // Task -> Updates (History)
     public function updates()

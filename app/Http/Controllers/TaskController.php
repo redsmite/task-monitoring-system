@@ -55,7 +55,7 @@ class TaskController extends Controller
                     $q->where('name', 'like', "%$search%")
                         ->orWhere('last_action', 'like', "%$search%")
                         ->orWhereHas('updates', fn($u) => $u->where('update_text', 'like', "%$search%"))
-                        ->orWhereHas('user', fn($u) =>
+                        ->orWhereHas('users', fn($u) =>
                             $u->where('first_name', 'like', "%$search%")
                               ->orWhere('last_name', 'like', "%$search%"))
                         ->orWhereHas('divisions', fn($d) =>
@@ -70,7 +70,7 @@ class TaskController extends Controller
         | TASK ALL QUERY
         |--------------------------------------------------------------------------
         */
-        $taskAllQuery = Task::with('divisions', 'user', 'latestUpdate')
+        $taskAllQuery = Task::with('divisions', 'users', 'latestUpdate')
             ->whereIn('status', ['not_started', 'in_progress']);
 
         if ($user->user_type !== 'admin') {
@@ -89,7 +89,7 @@ class TaskController extends Controller
         | COMPLETED QUERY
         |--------------------------------------------------------------------------
         */
-        $completedQuery = Task::with('divisions', 'user', 'latestUpdate')
+        $completedQuery = Task::with('divisions', 'users', 'latestUpdate')
             ->where('status', 'completed');
 
         if ($user->user_type !== 'admin') {
@@ -140,7 +140,8 @@ public function store(Request $request)
 
     $validated = $request->validate([
         'task_name'   => 'required|string|max:255',
-        'assignee'    => 'nullable',
+        'assignee' => 'nullable|array',
+        'assignee.*' => 'exists:users,id',
         'division'    => 'required', // array or single
         'last_action' => 'nullable|string|max:255',
         'status'      => 'required|string|max:255',
@@ -161,8 +162,9 @@ public function store(Request $request)
 
     $task = Task::create([
         'name'        => $validated['task_name'],
-        'user_id'     => $validated['assignee'] ?? null,
         'last_action' => $validated['last_action'] ?? null,
+        'assignee' => 'sometimes|array',
+        'assignee.*' => 'exists:users,id',
         'status'      => $validated['status'],
         'priority'    => $validated['priority'] ?? null,
         'description' => $validated['description'] ?? null,
@@ -170,6 +172,10 @@ public function store(Request $request)
         'created_at'  => $createdAt,
         'updated_at'  => $createdAt,
     ]);
+
+    if (array_key_exists('assignee', $validated)) {
+        $task->users()->sync($validated['assignee'] ?? []);
+    }
 
     // Handle divisions
     $divisionIds = is_array($validated['division'])
@@ -191,7 +197,7 @@ public function store(Request $request)
             abort(403);
         }
 
-        $task->load(['divisions', 'user', 'updates.user']);
+        $task->load(['divisions', 'users', 'updates.user']);
 
         return response()->json([
             'task' => new TaskResource($task),
@@ -236,7 +242,6 @@ public function update(Request $request, Task $task)
 
     $task->update([
         'name'        => $validated['task_name'] ?? $task->name,
-        'user_id'     => $validated['assignee'] ?? $task->user_id,
         'last_action' => $validated['last_action'] ?? $task->last_action,
         'status'      => $validated['status'] ?? $task->status,
         'priority'    => $validated['priority'] ?? $task->priority,
@@ -244,6 +249,10 @@ public function update(Request $request, Task $task)
         'created_at'  => $createdAt,
         'due_date'    => $dueDate,
     ]);
+
+    if (isset($validated['assignee'])) {
+        $task->users()->sync($validated['assignee']);
+    }
 
     // Sync divisions if provided
     if (isset($validated['division'])) {
@@ -274,5 +283,54 @@ public function update(Request $request, Task $task)
         $task->delete();
 
         return back()->with('success', 'Task deleted');
+    }
+    // Store a new task update
+    public function storeUpdate(Task $task, Request $request)
+    {
+        if (auth()->user()->user_type !== 'admin') {
+            abort(403);
+        }
+
+        $request->validate([
+            'update_text' => 'required|string|max:255',
+        ]);
+
+        $task->updates()->create([
+            'update_text' => $request->update_text,
+            'user_id' => auth()->id(),
+        ]);
+
+        // ✅ Return back with success flash message (Inertia compatible)
+        return back()->with('success', 'Update added successfully');
+    }
+
+    // Update an existing task update
+    public function updateUpdate(Task $task, TaskUpdate $update, Request $request)
+    {
+        if (auth()->user()->user_type !== 'admin') {
+            abort(403);
+        }
+
+        $request->validate([
+            'update_text' => 'required|string|max:255',
+        ]);
+
+        $update->update([
+            'update_text' => $request->update_text,
+        ]);
+
+        return back()->with('success', 'Update updated successfully');
+    }
+
+    // Delete a task update
+    public function destroyUpdate(Task $task, TaskUpdate $update)
+    {
+        if (auth()->user()->user_type !== 'admin') {
+            abort(403);
+        }
+
+        $update->delete();
+
+        return back()->with('success', 'Update deleted successfully');
     }
 }

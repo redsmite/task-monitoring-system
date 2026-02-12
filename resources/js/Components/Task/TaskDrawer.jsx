@@ -158,9 +158,14 @@ export default function TaskDrawer({
                     ? [String(taskToUse.division.id)]
                     : [];
 
+            const assigneeIds = taskToUse?.users?.length
+                ? taskToUse.users.map(u => String(u.id))
+                : [];
+
+
             setEditData({
                 task_name: taskToUse.name || '',
-                assignee: taskToUse.user?.id ? String(taskToUse.user.id) : '',
+                assignee: assigneeIds,
                 division: divisionIds,
                 last_action: taskToUse.latest_update?.update_text || taskToUse.last_action || '',
                 status: formatStatusToDb(taskToUse.status) || '',
