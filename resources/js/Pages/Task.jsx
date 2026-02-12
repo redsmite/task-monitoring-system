@@ -275,13 +275,14 @@ export default function Task() {
                         data={taskAll.data}
                         onTaskClick={handleTaskClick}
                         onAddClick={() => handleAddClick('task_all')}
-                        showAddButton={true}
+                        showAddButton={userRole === 'admin'}
                         paginationLinks={taskAll.links}
                         paginationCurrentPage={taskAll.current_page}
                         paginationPerPage={taskAll.per_page}
                         paginationTotal={taskAll.total}
                         paginationLastPage={taskAll.last_page}
                         tableType="task_all"
+                        
                     />
 
                     <TaskList
@@ -291,7 +292,7 @@ export default function Task() {
                         data={completed.data}
                         onTaskClick={handleTaskClick}
                         onAddClick={() => handleAddClick('completed')}
-                        showAddButton={true}
+                        showAddButton={userRole === 'admin'}
                         paginationLinks={completed.links}
                         paginationCurrentPage={completed.current_page}
                         paginationPerPage={completed.per_page}
