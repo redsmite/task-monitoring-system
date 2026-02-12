@@ -21,9 +21,6 @@ Route::middleware([ExternalSessionAuth::class, 'auth'])->group(function () {
 
     // Controllers accessible by ALL users
     Route::resource('dashboard', DashboardController::class)->only(['index', 'show']);
-    Route::resource('timeline', TimelineController::class)->only(['index', 'show']);
-    Route::resource('employee', EmployeeController::class)->only(['index', 'show']);
-    Route::resource('division', DivisionsController::class)->only(['index', 'show']);
 
     // Profile
     // Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -42,7 +39,10 @@ Route::middleware([ExternalSessionAuth::class, 'auth'])->group(function () {
 
         Route::post('task/{task}/updates', [TaskController::class, 'storeUpdate'])->name('task.updates.store');
         Route::patch('task/{task}/updates/{update}', [TaskController::class, 'updateUpdate'])->name('task.updates.update');
-        Route::delete('task/{task}/updates/{update}', [TaskController::class, 'destroyUpdate'])->name('task.updates.destroy');
+        Route::delete('task/{task}/updates/{update}', [TaskController::class, 'destroyUpdate'])->name('task.updates.destroy');    
+        Route::resource('timeline', TimelineController::class)->only(['index', 'show']);
+        Route::resource('employee', EmployeeController::class)->only(['index', 'show']);
+        Route::resource('division', DivisionsController::class)->only(['index', 'show']);
     });
 
     // Task index and show are accessible to all authenticated users

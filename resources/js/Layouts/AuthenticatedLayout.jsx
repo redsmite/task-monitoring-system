@@ -50,12 +50,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                     >
                                         Divisions
                                     </NavLink> */}
-                                    <NavLink
-                                        href={route('timeline.index')}
-                                        active={route().current('timeline.index')}
-                                    >
-                                        Timeline
-                                    </NavLink>
+                                    {user.user_type === 'admin' && (
+                                        <NavLink
+                                            href={route('timeline.index')}
+                                            active={route().current('timeline.index')}
+                                        >
+                                            Timeline
+                                        </NavLink>
+                                    )}
                                 </div>
                             </div>
                             <div className="hidden lg:ms-6 lg:flex lg:items-center space-x-4">
@@ -169,12 +171,14 @@ export default function AuthenticatedLayout({ header, children }) {
                             >
                                 Divisions
                             </ResponsiveNavLink> */}
-                            <ResponsiveNavLink
-                                href={route('timeline.index')}
-                                active={route().current('timeline.index')}
-                            >
-                                Timeline
-                            </ResponsiveNavLink>
+                            {user.user_type === 'admin' && (
+                                <ResponsiveNavLink
+                                    href={route('timeline.index')}
+                                    active={route().current('timeline.index')}
+                                >
+                                    Timeline
+                                </ResponsiveNavLink>
+                            )}
                         </div>
 
                         <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
