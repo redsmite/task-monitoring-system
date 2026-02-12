@@ -236,6 +236,7 @@ export default function Task() {
                         open={sidebarOpen}
                         task={viewedTask}
                         onClose={handleSidebarClose}
+                        userRole={userRole}
                     />
                 </div>
 
