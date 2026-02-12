@@ -18,47 +18,47 @@ class DatabaseSeeder extends Seeder
         //User::factory(1)->create();
 
         $divisions = [
-            "Impo",
-            "Manda",
-            "GMS",
-            "MBSCMO",
-            "PRCMO",
-            "DENR",
-            "COA",
-            "MEO",
-            "CDD",
-            "ED",
-            "SMD",
-            "LPDD",
-            "FD",
-            "ARD",
-            "AD",
-            "ORED",
-            "LD",
-            "RD",
             "PMD",
+            "LD",
+            "ORED",
+            "AD",
+            "ARD",
+            "FD",
+            "LPDD",
+            "SMD",
+            "ED",
+            "CDD",
+            "MEO",
+            "COA",
+            "DENR",
+            "PRCMO",
+            "MBSCMO",
+            "GMS",
+            "Manda",
+            "Impo",
+            "Others",
         ];
 
         $colors = [
-            "#FF6B6B", // Impo
-            "#4ECDC4", // Manda
-            "#556270", // GMS
-            "#C7F464", // MBSCMO
-            "#FFCC5C", // PRCMO
-            "#88D8B0", // DENR
-            "#96CEB4", // COA
-            "#D9534F", // MEO
-            "#5BC0DE", // CDD
-            "#F0AD4E", // ED
-            "#A569BD", // SMD
-            "#1ABC9C", // LPDD
-            "#3498DB", // FD
-            "#2ECC71", // ARD
-            "#9B59B6", // AD
-            "#E74C3C", // ORED
-            "#F39C12", // LD
-            "#16A085", // RD
-            "#E67E22", // PMD
+            "#FF6B6B", // PMD
+            "#4ECDC4", // LD
+            "#556270", // ORED
+            "#C7F464", // AD
+            "#FFCC5C", // ARD
+            "#88D8B0", // FD
+            "#96CEB4", // LPDD
+            "#D9534F", // SMD
+            "#5BC0DE", // ED
+            "#F0AD4E", // CDD
+            "#A569BD", // MEO
+            "#1ABC9C", // COA
+            "#3498DB", // DENR
+            "#2ECC71", // PRCMO
+            "#9B59B6", // MBSCMO
+            "#E74C3C", // GMS
+            "#F39C12", // MANDATORIES
+            "#16A085", // IMPOSITIONS
+            "#E67E22", // OTHERS
         ];
 
         foreach ($divisions as $index => $name) {
