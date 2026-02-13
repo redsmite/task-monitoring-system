@@ -29,7 +29,7 @@ export default function Sidebar({ open, onClose, task }) {
     const [editUpdateText, setEditUpdateText] = useState("");
     const [newUpdateText, setNewUpdateText] = useState("");
     const [showAddUpdate, setShowAddUpdate] = useState(false);
-    const assignee = currentTask?.user || task?.user;
+    const assignee = currentTask?.users || task?.users;
 
     // Fetch full task data with updates when sidebar opens
     useEffect(() => {
@@ -131,14 +131,26 @@ export default function Sidebar({ open, onClose, task }) {
                     </div>
 
                     <div>
-                        <div className="text-sm flex gap-2">
-                            <h1 className="text-sm">Created at</h1>
-                            <h1 className="text-sm">{currentTask?.created_at || task?.created_at}</h1>
-                        </div>
                         <h1 className="text-3xl font-semibold">{currentTask?.name || task?.name}</h1>
                     </div>
 
                     <div
+                        className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition space-y-2"
+                    >
+                        <div className="flex justify-center">
+                            <h1 className="text-md font-semibold">📅Date Instructed</h1>
+                        </div>
+                        <div className="flex flex-1 justify-center items-center">
+                            <DateContainer
+                                bgcolor="bg-red-100"
+                                textColor="text-red-600"
+                            >
+                                {currentTask?.created_at || task?.created_at ? `${currentTask?.created_at || task?.created_at}` : "No due date set."}
+                            </DateContainer>
+                        </div>
+                    </div>
+
+                                        <div
                         className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 transition space-y-2"
                     >
                         <div className="flex justify-center">
@@ -160,13 +172,19 @@ export default function Sidebar({ open, onClose, task }) {
                         <div className="flex justify-center">
                             <h1 className="text-md font-semibold">👤Assigned To</h1>
                         </div>
-                        <div className="flex flex-1 justify-center items-center">
-                           <p className="text-violet-500 font-semibold">
-                                {assignee
-                                    ? `${assignee.first_name} ${assignee.last_name}`
-                                    : "Not assigned"}
-                            </p>
-                        </div>
+                            <div className="flex flex-1 justify-center items-center">
+                                {assignee && assignee.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2 justify-center">
+                                        {assignee.map((user) => (
+                                            <p key={user.id} className="text-violet-500 font-semibold">
+                                                {user.first_name} {user.last_name}
+                                            </p>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500">Not assigned</p>
+                                )}
+                            </div>
                     </div>
 
                     <div
