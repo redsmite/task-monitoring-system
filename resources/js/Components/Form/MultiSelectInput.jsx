@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Label from '@/Components/Form/Label';
 import { Popover, PopoverTrigger, PopoverContent } from '@/Components/ui/popover';
 import { Button } from '@/Components/ui/button';
@@ -6,22 +6,23 @@ import Checkbox from '@/Components/Checkbox';
 import { ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function MultiSelectInput({ 
-    label, 
-    placeholder, 
-    options = [], 
-    value = [], 
-    defaultValue = [], 
-    onChange, 
+export default function MultiSelectInput({
+    label,
+    placeholder,
+    options = [],
+    value = [],
+    defaultValue = [],
+    onChange,
     error,
-    className 
+    className
 }) {
     const [open, setOpen] = useState(false);
+    const [search, setSearch] = useState("");
+
     const selectedValues = value || defaultValue || [];
-    
-    // Ensure selectedValues is always an array
-    const selectedArray = Array.isArray(selectedValues) 
-        ? selectedValues 
+
+    const selectedArray = Array.isArray(selectedValues)
+        ? selectedValues
         : selectedValues ? [selectedValues] : [];
 
     const handleToggle = (optionValue) => {
@@ -29,7 +30,7 @@ export default function MultiSelectInput({
         const newValues = selectedArray.includes(stringValue)
             ? selectedArray.filter(v => v !== stringValue)
             : [...selectedArray, stringValue];
-        
+
         onChange?.(newValues);
     };
 
@@ -39,7 +40,8 @@ export default function MultiSelectInput({
         onChange?.(newValues);
     };
 
-    const selectedOptions = options.filter(opt => 
+    // 🟢 Selected users
+    const selectedOptions = options.filter(opt =>
         selectedArray.includes(String(opt.id))
     );
 
@@ -47,53 +49,56 @@ export default function MultiSelectInput({
         ? `${selectedOptions.length} selected`
         : placeholder || 'Select...';
 
+    // 🔍 Search filter
+    const filteredOptions = useMemo(() => {
+        if (!search) return options;
+
+        const term = search.toLowerCase();
+
+        return options.filter(opt => {
+            const name = (opt.name || "").toLowerCase();
+            const division = (opt.division_name || "").toLowerCase();
+            return name.includes(term) || division.includes(term);
+        });
+    }, [search, options]);
+
     return (
         <div className={cn("space-y-2", className)}>
-            {label && (
-                <Label title={label} />
-            )}
+            {label && <Label title={label} />}
 
-            <Popover open={open} onOpenChange={setOpen}>
+            <Popover
+                open={open}
+                onOpenChange={(v) => {
+                    setOpen(v);
+                    if (!v) setSearch("");
+                }}
+            >
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
                         role="combobox"
                         className={cn(
-                            "mb-2 w-full justify-between min-h-9 py-2 px-3 text-left touch-manipulation",
-                            "flex items-start",
+                            "mb-2 w-full justify-between min-h-9 py-2 px-3 text-left flex items-start",
                             selectedOptions.length > 0 ? "h-auto" : "h-9",
                             !selectedArray.length && "text-muted-foreground"
                         )}
                     >
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+                            
+                            {/* 🟢 SHOW SELECTED USERS HERE */}
                             {selectedOptions.length > 0 ? (
                                 selectedOptions.map((option) => (
                                     <span
                                         key={option.id}
-                                        className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-xs bg-primary/10 text-primary border border-primary/20 whitespace-nowrap"
-                                        style={{ backgroundColor: option.division_color ? `${option.division_color}20` : undefined }}
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-primary/10 text-primary border"
                                     >
-                                        <span className="truncate max-w-[80px] sm:max-w-none">
-                                            {option.division_name || option.name || String(option.id)}
-                                        </span>
+                                        {option.division_name || option.name}
+
                                         <span
-                                            role="button"
-                                            tabIndex={0}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRemove(e, String(option.id));
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    handleRemove(e, String(option.id));
-                                                }
-                                            }}
-                                            className="ml-0.5 sm:ml-1 hover:bg-primary/20 active:bg-primary/30 rounded-full p-0.5 sm:p-0.5 flex-shrink-0 touch-manipulation min-w-[20px] min-h-[20px] flex items-center justify-center cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/50"
-                                            aria-label={`Remove ${option.division_name || option.name}`}
+                                            onClick={(e) => handleRemove(e, String(option.id))}
+                                            className="ml-1 cursor-pointer"
                                         >
-                                            <X className="h-3 w-3 sm:h-3 sm:w-3" />
+                                            <X className="h-3 w-3" />
                                         </span>
                                     </span>
                                 ))
@@ -101,63 +106,64 @@ export default function MultiSelectInput({
                                 <span className="text-sm">{displayText}</span>
                             )}
                         </div>
-                        <ChevronDown className={cn(
-                            "ml-2 h-4 w-4 shrink-0 opacity-50",
-                            selectedOptions.length > 0 ? "mt-1 sm:mt-0" : ""
-                        )} />
+
+                        <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent 
-                    className="w-[calc(100vw-2rem)] sm:w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] sm:max-w-none p-2 sm:p-2" 
-                    align="start"
-                    sideOffset={8}
-                >
-                    <div className="max-h-[60vh] sm:max-h-[300px] overflow-y-auto space-y-1 overscroll-contain multiselect-scrollbar">
-                        {options.length === 0 ? (
-                            <div className="px-2 py-3 sm:py-1.5 text-sm text-muted-foreground text-center">
-                                No options available
-                            </div>
-                        ) : (
-                            options.map((option) => {
-                                const isSelected = selectedArray.includes(String(option.id));
-                                return (
-                                    <div
-                                        key={option.id}
-                                        className={cn(
-                                            "flex items-center space-x-2 sm:space-x-2 px-3 py-3 sm:px-2 sm:py-1.5 rounded-sm hover:bg-accent active:bg-accent/80 cursor-pointer touch-manipulation min-h-[44px] sm:min-h-0",
-                                            isSelected && "bg-accent"
-                                        )}
-                                        onClick={() => handleToggle(option.id)}
-                                        role="button"
-                                        tabIndex={0}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
-                                                handleToggle(option.id);
-                                            }
-                                        }}
-                                    >
-                                        <Checkbox
-                                            checked={isSelected}
-                                            onChange={() => handleToggle(option.id)}
-                                            className="h-5 w-5 sm:h-4 sm:w-4 flex-shrink-0 touch-manipulation"
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                        <span className="text-sm sm:text-sm flex-1 truncate">
-                                            {option.division_name || option.name || String(option.id)}
-                                        </span>
-                                    </div>
-                                );
-                            })
-                        )}
+
+                <PopoverContent className="p-2 w-[var(--radix-popover-trigger-width)]">
+                    <div className="space-y-2">
+
+                        {/* 🔍 SEARCH */}
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full border rounded px-2 py-1 text-sm"
+                        />
+
+                        <div className="max-h-[300px] overflow-y-auto space-y-1">
+
+                            {/* 🔴 NO RESULTS */}
+                            {filteredOptions.length === 0 ? (
+                                <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+                                    No results found
+                                </div>
+                            ) : (
+                                filteredOptions.map((option) => {
+                                    const isSelected = selectedArray.includes(String(option.id));
+
+                                    return (
+                                        <div
+                                            key={option.id}
+                                            className={cn(
+                                                "flex items-center space-x-2 px-3 py-2 rounded-sm hover:bg-accent cursor-pointer",
+                                                isSelected && "bg-accent"
+                                            )}
+                                            onClick={() => handleToggle(option.id)}
+                                        >
+                                            <Checkbox
+                                                checked={isSelected}
+                                                onChange={() => handleToggle(option.id)}
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                            <span className="text-sm flex-1 truncate">
+                                                {option.division_name || option.name}
+                                            </span>
+                                        </div>
+                                    );
+                                })
+                            )}
+
+                        </div>
                     </div>
                 </PopoverContent>
             </Popover>
 
             {error && (
-                <p className="text-red-600 dark:text-red-500 text-sm">{error}</p>
+                <p className="text-red-600 text-sm">{error}</p>
             )}
         </div>
     );
 }
-
