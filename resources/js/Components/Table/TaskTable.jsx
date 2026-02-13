@@ -293,28 +293,36 @@ export default function TaskTable({
     const [isEditActive, setIsEditActive] = useState({});
 
     // Set
+    const getDivisionIdsFromAssignees = (assigneeIds) => {
+        const selectedUsers = users_data.filter(user =>
+            assigneeIds.includes(String(user.id))
+        );
+
+        return [
+            ...new Set(
+                selectedUsers
+                    .map(user => user.division_id)
+                    .filter(Boolean)
+                    .map(String)
+            )
+        ];
+    };
     const ToggleEdit = (task) => {
         setIsEditActive((prev) => {
             const next = { [task.id]: !prev[task.id] };
 
-            // Map users to array of string IDs
-            const assigneeIds =
-                task.users && task.users.length > 0
-                    ? task.users.map(u => String(u.id))
-                    : [];
+            // Assignees
+            const assigneeIds = task.users?.length
+                ? task.users.map(u => String(u.id))
+                : [];
 
-            // Map divisions to array of string IDs
-            const divisionIds =
-                task.divisions && task.divisions.length > 0
-                    ? task.divisions.map(d => String(d.id))
-                    : task.division?.id
-                        ? [String(task.division.id)]
-                        : [];
+            // Calculate divisions based on assignees immediately
+            const divisionIds = getDivisionIdsFromAssignees(assigneeIds).map(String);
 
             setEditData({
                 task_name: task.name || '',
                 assignee: assigneeIds,
-                division: divisionIds,
+                division: divisionIds,   // ✅ divisions are prefilled
                 last_action: task.latest_update?.update_text || task.last_action || '',
                 status: formatStatusToDb(task.status) || '',
                 priority: formatPriorityToDb(task.priority) || '',
@@ -326,6 +334,7 @@ export default function TaskTable({
             return next;
         });
     };
+
 
     // Edit
     // useForm setData is async; use the callback form to avoid stale reads
@@ -525,26 +534,43 @@ export default function TaskTable({
                                 <MultiSelectInput
                                     label="Assignee"
                                     placeholder="Select Assignee"
-                                    options={users_data} // [{id, name}]
-                                    value={Array.isArray(addData.assignee) ? addData.assignee : []} // Always array
-                                    onChange={(values) => updateAddTaskData("assignee", values)}
+                                    options={users_data} // [{id, name, division_id}]
+                                    value={Array.isArray(addData.assignee) ? addData.assignee : []}
+                                    onChange={(selectedUserIds) => {
+                                        // Update assignees
+                                        updateAddTaskData("assignee", selectedUserIds);
+
+                                        // Get selected users
+                                        const selectedUsers = users_data.filter(user =>
+                                            selectedUserIds.includes(String(user.id))
+                                        );
+
+                                        // Extract unique divisions
+                                        const divisionIds = [
+                                            ...new Set(
+                                                selectedUsers
+                                                    .map(user => user.division_id)
+                                                    .filter(Boolean)
+                                            )
+                                        ];
+
+                                        // Update division array in addData for saving later
+                                        updateAddTaskData("division", divisionIds);
+                                    }}
                                 />
                             </TableData>
 
                             <TableData>
-                                <MultiSelectInput
-                                    placeholder="Select Division"
-                                    options={divisions_data} // [{id, division_name}]
-                                    value={
-                                        Array.isArray(addData.division)
-                                            ? addData.division
-                                            : addData.division
-                                                ? [addData.division]
-                                                : []
-                                    }
-                                    onChange={(values) => updateAddTaskData("division", values)}
-                                />
+                                <div className="text-sm font-medium text-gray-700">
+                                    {Array.isArray(addData.division) && addData.division.length > 0
+                                        ? divisions_data
+                                            .filter(div => addData.division.map(Number).includes(div.id))
+                                            .map(div => div.division_name)
+                                            .join(", ")
+                                        : "No division selected"}
+                                </div>
                             </TableData>
+
                             <TableData>
                                 <PrimaryInput
                                     type="text"
@@ -643,11 +669,11 @@ export default function TaskTable({
                                     {task?.name}
                                 </TableData>
                                 <TableData>
-                                {task?.users && task.users.length > 0
-                                    ? task.users.map(u => `${u.first_name} ${u.last_name}`).join(', ')
-                                    : task?.user
-                                    ? `${task.user.first_name} ${task.user.last_name}`
-                                    : 'Unassigned'}
+                                    {task?.users && task.users.length > 0
+                                        ? task.users.map(u => `${u.first_name} ${u.last_name}`).join(', ')
+                                        : task?.user
+                                            ? `${task.user.first_name} ${task.user.last_name}`
+                                            : 'Unassigned'}
                                 </TableData>
                                 <TableData
                                     className="text-center"
@@ -733,29 +759,40 @@ export default function TaskTable({
                                     <MultiSelectInput
                                         label="Assignee"
                                         placeholder="Select Assignee"
-                                        options={users_data} 
+                                        options={users_data} // [{id, name, division_id}]
                                         value={Array.isArray(editData.assignee) ? editData.assignee : []}
-                                        onChange={(values) => updateEditTaskData("assignee", values)}
+                                        onChange={(selectedUserIds) => {
+                                            // Update assignees
+                                            updateEditTaskData("assignee", selectedUserIds);
+
+                                            // Filter selected users by string IDs
+                                            const selectedUsers = users_data.filter(user =>
+                                                selectedUserIds.includes(String(user.id))
+                                            );
+
+                                            // Extract unique division IDs
+                                            const divisionIds = [
+                                                ...new Set(
+                                                    selectedUsers
+                                                        .map(user => user.division_id)
+                                                        .filter(Boolean)
+                                                )
+                                            ];
+
+                                            // Update divisions in editData
+                                            updateEditTaskData("division", divisionIds);
+                                        }}
                                     />
                                 </TableData>
-
                                 <TableData>
-                                    <MultiSelectInput
-                                        placeholder="Select Division"
-                                        options={divisions_data}
-                                        value={
-                                            Array.isArray(editData.division)
-                                                ? editData.division
-                                                : editData.division
-                                                    ? [editData.division]
-                                                    : task?.divisions && task.divisions.length > 0
-                                                        ? task.divisions.map(d => String(d.id))
-                                                        : task?.division?.id
-                                                            ? [String(task.division.id)]
-                                                            : []
-                                        }
-                                        onChange={(values) => updateEditTaskData("division", values)}
-                                    />
+                                    <div className="text-sm font-medium text-gray-700">
+                                        {Array.isArray(editData.division) && editData.division.length > 0
+                                            ? divisions_data
+                                                .filter(div => editData.division.map(String).includes(String(div.id)))
+                                                .map(div => div.division_name)
+                                                .join(", ")
+                                            : "No division selected"}
+                                    </div>
                                 </TableData>
                                 <TableData>
                                     <PrimaryInput
@@ -898,28 +935,40 @@ export default function TaskTable({
                                 <MultiSelectInput
                                     label="Assignee"
                                     placeholder="Select Assignee"
-                                    options={users_data} 
+                                    options={users_data} // [{id, name, division_id}]
                                     value={Array.isArray(editData.assignee) ? editData.assignee : []}
-                                    onChange={(values) => updateEditTaskData("assignee", values)}
+                                    onChange={(selectedUserIds) => {
+                                        // Update assignees
+                                        updateEditTaskData("assignee", selectedUserIds);
+
+                                        // Filter selected users
+                                        const selectedUsers = users_data.filter(user =>
+                                            selectedUserIds.includes(String(user.id))
+                                        );
+
+                                        // Auto-select divisions
+                                        const divisionIds = [
+                                        ...new Set(
+                                            selectedUsers
+                                            .map(user => String(user.division_id)) // always string
+                                            .filter(Boolean)
+                                        )
+                                        ];
+                                        updateEditTaskData("division", divisionIds);
+                                    }}
                                 />
                             </TableData>
+
                             <TableData>
-                                <MultiSelectInput
-                                    placeholder="Select Division"
-                                    options={divisions_data}
-                                    value={
-                                        Array.isArray(editData.division)
-                                            ? editData.division
-                                            : editData.division
-                                                ? [editData.division]
-                                                : task?.divisions && task.divisions.length > 0
-                                                    ? task.divisions.map(d => String(d.id))
-                                                    : task?.division?.id
-                                                        ? [String(task.division.id)]
-                                                        : []
-                                    }
-                                    onChange={(values) => updateEditTaskData("division", values)}
-                                />
+                                {/* Plain text display of divisions */}
+                                <div className="text-sm font-medium text-gray-700">
+                                    {Array.isArray(editData.division) && editData.division.length > 0
+                                        ? divisions_data
+                                            .filter(div => editData.division.map(String).includes(String(div.id)))
+                                            .map(div => div.division_name)
+                                            .join(", ")
+                                        : "No division selected"}
+                                </div>
                             </TableData>
                             <TableData>
                                 <PrimaryInput
