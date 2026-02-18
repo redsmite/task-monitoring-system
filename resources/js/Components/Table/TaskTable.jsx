@@ -21,7 +21,6 @@ import PriorityContainer from '../Misc/PriorityContainer';
 import ActionData from './ActionData';
 import ActionHeader from './ActionHeader';
 
-
 export default function TaskTable({
     borderColor = "border-blue-500",
     tableIcon = "icon",
@@ -668,13 +667,26 @@ export default function TaskTable({
                                 >
                                     {task?.name}
                                 </TableData>
-                                <TableData>
-                                    {task?.users && task.users.length > 0
-                                        ? task.users.map(u => `${u.first_name} ${u.last_name}`).join(', ')
-                                        : task?.user
-                                            ? `${task.user.first_name} ${task.user.last_name}`
-                                            : 'Unassigned'}
+                                <TableData className="text-center">
+                                    <div className="flex flex-wrap gap-1 sm:gap-2 justify-center items-center">
+
+                                        {task?.users?.length > 0 ? (
+                                            task.users.map((u) => (
+                                                <DivisionContainer
+                                                    key={u.id}
+                                                    bgcolor={u.division?.division_color || "#6b7280"}
+                                                    compact={task.users.length > 2}
+                                                >
+                                                    {u.first_name} {u.last_name}
+                                                </DivisionContainer>
+                                            ))
+                                        ) : (
+                                            <span className="text-gray-400">Unassigned</span>
+                                        )}
+
+                                    </div>
                                 </TableData>
+
                                 <TableData
                                     className="text-center"
                                 >

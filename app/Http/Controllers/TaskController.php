@@ -70,8 +70,11 @@ class TaskController extends Controller
         | TASK ALL QUERY
         |--------------------------------------------------------------------------
         */
-        $taskAllQuery = Task::with('divisions', 'users', 'latestUpdate')
-            ->whereIn('status', ['not_started', 'in_progress']);
+        $taskAllQuery = Task::with([
+            'divisions',
+            'users.division',   // ← ADD THIS
+            'latestUpdate'
+        ])->whereIn('status', ['not_started', 'in_progress']);
 
         if ($user->user_type !== 'admin') {
             $taskAllQuery->whereHas('divisions', function ($q) use ($user) {
@@ -96,8 +99,12 @@ class TaskController extends Controller
         | COMPLETED QUERY
         |--------------------------------------------------------------------------
         */
-        $completedQuery = Task::with('divisions', 'users', 'latestUpdate')
-            ->where('status', 'completed');
+        $completedQuery = Task::with([
+            'divisions',
+            'users.division',   // ← ADD THIS
+            'latestUpdate'
+        ])->where('status', 'completed');
+
 
         if ($user->user_type !== 'admin') {
             $completedQuery->whereHas('divisions', function ($q) use ($user) {
