@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class ExternalSessionAuth
 {
@@ -15,11 +14,13 @@ class ExternalSessionAuth
     {
         $sessionId = $request->query('session_id');
 
-        // no external session → continue normally
         if (!$sessionId) {
             return $next($request);
         }
 
+        // --------------------------------------------------
+        // Get external user from core system
+        // --------------------------------------------------
         $external = DB::connection('denr_ncr')
             ->table('core_session as s')
             ->join('core_users as u', 's.userid', '=', 'u.id')
@@ -37,45 +38,77 @@ class ExternalSessionAuth
             ->where('s.guest', 0)
             ->first();
 
-        // ❌ no valid session → deny access
         if (!$external) {
             abort(403, 'Invalid external session.');
         }
 
-        // 🔁 already logged in?
+        // --------------------------------------------------
+        // Normalize values (failsafe)
+        // --------------------------------------------------
+        $email = $external->email ?? $external->username.'@external.local';
+        $position = $external->position ?? 'N/A';
+        $division = $external->division ?? null;
+
+        // --------------------------------------------------
+        // If already logged in and same user → just sync
+        // --------------------------------------------------
         if (Auth::check()) {
             $current = Auth::user();
 
-            // different external user → force relogin
-            if ($current->external_user_id != $external->external_user_id) {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-            } else {
+            if ($current->external_user_id == $external->external_user_id) {
+
+                $current->update([
+                    'name' => $external->username,
+                    'first_name' => $external->first_name,
+                    'last_name' => $external->last_name,
+                    'position' => $position,
+                    'division_id' => $division,
+                    'email' => $email,
+                ]);
+
                 return $next($request);
             }
+
+            // different user → logout
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
         }
 
-        // find or create local user (no password/pin)
+        // --------------------------------------------------
+        // Find or create local user
+        // --------------------------------------------------
         $user = User::where('external_user_id', $external->external_user_id)->first();
 
         if (!$user) {
+
+            // avoid duplicate email crash
+            $existingEmail = User::where('email', $email)->first();
+            if ($existingEmail) {
+                $email = $external->username.'_'.$external->external_user_id.'@external.local';
+            }
+
             $user = User::create([
                 'name' => $external->username,
                 'first_name' => $external->first_name,
                 'last_name' => $external->last_name,
-                'position' => $external->position,
-                'division_id' => $external->division,
-                'email' => $external->email ?? $external->username.'@external.local',
+                'position' => $position,
+                'division_id' => $division,
+                'email' => $email,
                 'user_type' => 'user',
                 'external_user_id' => $external->external_user_id,
             ]);
+
         } else {
+
+            // 🔄 ALWAYS SYNC FROM CORE
             $user->update([
+                'name' => $external->username,
                 'first_name' => $external->first_name,
                 'last_name' => $external->last_name,
-                'position' => $external->position,
-                'division_id' => $external->division,
+                'position' => $position,
+                'division_id' => $division,
+                'email' => $email,
             ]);
         }
 

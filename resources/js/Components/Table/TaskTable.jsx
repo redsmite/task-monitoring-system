@@ -533,7 +533,10 @@ export default function TaskTable({
                                 <MultiSelectInput
                                     label="Assignee"
                                     placeholder="Select Assignee"
-                                    options={users_data} // [{id, name, division_id}]
+                                    options={users_data.map(user => ({
+                                        ...user,
+                                        name: `${user.last_name}, ${user.first_name}` // override name for display
+                                    }))}
                                     value={Array.isArray(addData.assignee) ? addData.assignee : []}
                                     onChange={(selectedUserIds) => {
                                         // Update assignees
@@ -558,7 +561,6 @@ export default function TaskTable({
                                     }}
                                 />
                             </TableData>
-
                             <TableData>
                                 <div className="text-sm font-medium text-gray-700">
                                     {Array.isArray(addData.division) && addData.division.length > 0
@@ -771,7 +773,10 @@ export default function TaskTable({
                                     <MultiSelectInput
                                         label="Assignee"
                                         placeholder="Select Assignee"
-                                        options={users_data} // [{id, name, division_id}]
+                                        options={users_data.map(user => ({
+                                            ...user,
+                                            name: `${user.last_name}, ${user.first_name}` // display as Last, First
+                                        }))}
                                         value={Array.isArray(editData.assignee) ? editData.assignee : []}
                                         onChange={(selectedUserIds) => {
                                             // Update assignees
@@ -947,7 +952,10 @@ export default function TaskTable({
                                 <MultiSelectInput
                                     label="Assignee"
                                     placeholder="Select Assignee"
-                                    options={users_data} // [{id, name, division_id}]
+                                    options={users_data.map(user => ({
+                                        ...user,
+                                        name: `${user.last_name}, ${user.first_name}` // display as Last, First
+                                    }))}
                                     value={Array.isArray(editData.assignee) ? editData.assignee : []}
                                     onChange={(selectedUserIds) => {
                                         // Update assignees
@@ -960,17 +968,17 @@ export default function TaskTable({
 
                                         // Auto-select divisions
                                         const divisionIds = [
-                                        ...new Set(
-                                            selectedUsers
-                                            .map(user => String(user.division_id)) // always string
-                                            .filter(Boolean)
-                                        )
+                                            ...new Set(
+                                                selectedUsers
+                                                    .map(user => String(user.division_id)) // always string
+                                                    .filter(Boolean)
+                                            )
                                         ];
+
                                         updateEditTaskData("division", divisionIds);
                                     }}
                                 />
                             </TableData>
-
                             <TableData>
                                 {/* Plain text display of divisions */}
                                 <div className="text-sm font-medium text-gray-700">
