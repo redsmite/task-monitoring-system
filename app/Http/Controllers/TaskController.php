@@ -80,7 +80,14 @@ class TaskController extends Controller
         }
 
         $taskAll = $applySearch(
-            $taskAllQuery->orderBy('created_at', $taskAllSort),
+            $taskAllQuery->orderByRaw("
+                CASE 
+                    WHEN priority = 'Urgent' THEN 0
+                    WHEN priority = 'Regular' THEN 2
+                    ELSE 1
+                END
+            ")
+            ->orderByRaw("due_date IS NULL, due_date ASC"),
             $taskAllSearch
         )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
 
@@ -99,7 +106,14 @@ class TaskController extends Controller
         }
 
         $completed = $applySearch(
-            $completedQuery->orderBy('created_at', $completedSort),
+            $completedQuery->orderByRaw("
+                CASE 
+                    WHEN priority = 'Urgent' THEN 0
+                    WHEN priority = 'Regular' THEN 2
+                    ELSE 1
+                END
+            ")
+            ->orderByRaw("due_date IS NULL, due_date ASC"),
             $completedSearch
         )->paginate(15, ['*'], 'completed_page', $completedPage);
 
