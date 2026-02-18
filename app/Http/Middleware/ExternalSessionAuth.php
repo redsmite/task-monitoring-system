@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class ExternalSessionAuth
@@ -25,7 +24,7 @@ class ExternalSessionAuth
             ->table('core_session as s')
             ->join('core_users as u', 's.userid', '=', 'u.id')
             ->select(
-                'u.id as external_id',
+                'u.id as external_user_id',
                 'u.username',
                 'u.email',
                 'u.first_name',
@@ -35,7 +34,7 @@ class ExternalSessionAuth
                 'u.division'
             )
             ->where('s.session_id', $sessionId)
-            ->where('s.guest', 0) // block guest sessions
+            ->where('s.guest', 0)
             ->first();
 
         // ❌ no valid session → deny access
@@ -48,7 +47,7 @@ class ExternalSessionAuth
             $current = Auth::user();
 
             // different external user → force relogin
-            if ($current->external_user_id != $external->external_id) {
+            if ($current->external_user_id != $external->external_user_id) {
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
@@ -57,8 +56,8 @@ class ExternalSessionAuth
             }
         }
 
-        // find or create local user
-        $user = User::where('external_user_id', $external->external_id)->first();
+        // find or create local user (no password/pin)
+        $user = User::where('external_user_id', $external->external_user_id)->first();
 
         if (!$user) {
             $user = User::create([
@@ -68,12 +67,8 @@ class ExternalSessionAuth
                 'position' => $external->position,
                 'division_id' => $external->division,
                 'email' => $external->email ?? $external->username.'@external.local',
-                'email_verified_at' => now(),
-                'password' => Hash::make('defaultpassword'),
-                'pin' => Hash::make('1234'),
                 'user_type' => 'user',
-                'external_user_id' => $external->external_id,
-                'remember_token' => Str::random(10),
+                'external_user_id' => $external->external_user_id,
             ]);
         } else {
             $user->update([
