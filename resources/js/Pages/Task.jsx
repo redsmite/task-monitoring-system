@@ -262,6 +262,7 @@ export default function Task() {
                         resetAddData={resetAddData}
                         addErrors={addErrors}
                         tableType={activeTableType}
+                        userRole={userRole}
                     />
                 </div>
 
@@ -284,20 +285,22 @@ export default function Task() {
                     />
 
                     <TaskList
-                        borderColor="border-green-600"
-                        title="Completed"
-                        icon="✅"
-                        data={completed.data}
+                        borderColor="border-violet-600"
+                        title="All Tasks"
+                        icon="📄"
+                        data={taskAll.data}
                         onTaskClick={handleTaskClick}
-                        onAddClick={() => handleAddClick('completed')}
+                        onAddClick={() => handleAddClick('task_all')}
                         showAddButton={true}
-                        paginationLinks={completed.links}
-                        paginationCurrentPage={completed.current_page}
-                        paginationPerPage={completed.per_page}
-                        paginationTotal={completed.total}
-                        paginationLastPage={completed.last_page}
-                        tableType="completed"
+                        userRole={userRole} // <-- pass userRole here
+                        paginationLinks={taskAll.links}
+                        paginationCurrentPage={taskAll.current_page}
+                        paginationPerPage={taskAll.per_page}
+                        paginationTotal={taskAll.total}
+                        paginationLastPage={taskAll.last_page}
+                        tableType="task_all"
                     />
+
                 </div>
 
                 {/* Task Tables - Desktop Only */}

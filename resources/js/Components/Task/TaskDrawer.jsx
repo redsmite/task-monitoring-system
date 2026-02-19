@@ -35,13 +35,16 @@ export default function TaskDrawer({
     addProcessing,
     resetAddData,
     addErrors,
-    tableType = ''
+    tableType = '',
+    userRole = 'user'
 }) {
+    const isAdmin = userRole === 'admin';
     const [isEditMode, setIsEditMode] = useState(false);
     const [isAddModeActive, setIsAddModeActive] = useState(isAddMode);
     const [currentTask, setCurrentTask] = useState(task);
     const [taskUpdates, setTaskUpdates] = useState([]);
 
+    const assignedUsers = currentTask?.users || task?.users || [];
     // Sync edit mode with add mode
     useEffect(() => {
         setIsAddModeActive(isAddMode);
@@ -97,9 +100,8 @@ export default function TaskDrawer({
 
     const formatPriorityToDb = (value) => {
         const map = {
-            'High': 'high',
-            'Medium': 'medium',
-            'Low': 'low',
+            'Urgent': 'Urgent',
+            'Regular': 'Regular',
         }
         return map[value] || value;
     }
@@ -375,9 +377,8 @@ export default function TaskDrawer({
                                 onChange={(value) => updateFormData("priority", value)}
                                 error={currentErrors?.priority}
                             >
-                                <SelectItem value="high">High</SelectItem>
-                                <SelectItem value="medium">Medium</SelectItem>
-                                <SelectItem value="low">Low</SelectItem>
+                                <SelectItem value="Urgent">Urgent</SelectItem>
+                                <SelectItem value="Regular">Regular</SelectItem>
                             </SelectInput>
 
                             <div className="space-y-2">
@@ -458,10 +459,22 @@ export default function TaskDrawer({
                                 </div>
 
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
-                                    <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">👤 Assigned To</h4>
-                                    <p className="text-violet-500 dark:text-violet-400 font-semibold text-sm">
-                                        {(currentTask?.user || task?.user) ? `${(currentTask?.user || task?.user).first_name} ${(currentTask?.user || task?.user).last_name}` : "Not assigned"}
-                                    </p>
+                                    <div className="flex justify-center">
+                                        <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">👤 Assigned To</h4>
+                                    </div>
+                                    <div className="flex flex-1 justify-center items-center">
+                                        {assignedUsers.length > 0 ? (
+                                            <div className="flex flex-wrap gap-2 justify-center">
+                                                {assignedUsers.map((user) => (
+                                                    <p key={user.id} className="text-violet-500 dark:text-violet-400 font-semibold text-sm">
+                                                        {user.first_name} {user.last_name}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-gray-500 dark:text-gray-400">Not assigned</p>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-zinc-900">
@@ -493,7 +506,7 @@ export default function TaskDrawer({
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-lg font-semibold text-foreground">History</h3>
-                                    {!currentData.showAddUpdate && (
+                                    {isAdmin && !currentData.showAddUpdate && (
                                         <PrimaryButton
                                             text="+ Add Update"
                                             onClick={() => {
@@ -502,6 +515,7 @@ export default function TaskDrawer({
                                         />
                                     )}
                                 </div>
+
 
                                 {/* Add New Update Form */}
                                 {currentData.showAddUpdate && (
@@ -688,20 +702,22 @@ export default function TaskDrawer({
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <PrimaryButton
-                                    text="Edit Task"
-                                    onClick={() => setIsEditMode(true)}
-                                />
-                                {(currentTask || task) && (
-                                    <DangerButton
-                                        onClick={handleDelete}
-                                        className="flex-1"
-                                    >
-                                        Delete Task
-                                    </DangerButton>
-                                )}
-                            </div>
+                            {isAdmin && (
+                                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <PrimaryButton
+                                        text="Edit Task"
+                                        onClick={() => setIsEditMode(true)}
+                                    />
+                                    {(currentTask || task) && (
+                                        <DangerButton
+                                            onClick={handleDelete}
+                                            className="flex-1"
+                                        >
+                                            Delete Task
+                                        </DangerButton>
+                                    )}
+                                </div>
+                            )}
                         </>
                     )}
                 </div>

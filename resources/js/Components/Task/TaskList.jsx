@@ -11,6 +11,7 @@ export default function TaskList({
     onTaskClick,
     onAddClick,
     showAddButton = true,
+    userRole = 'user',
     paginationLinks = [],
     paginationCurrentPage,
     paginationPerPage,
@@ -18,6 +19,7 @@ export default function TaskList({
     paginationLastPage,
     tableType = ''
 }) {
+    const isAdmin = userRole === 'admin';
     return (
         <div className="rounded-lg p-4 space-y-3">
             {/* Header */}
@@ -29,12 +31,13 @@ export default function TaskList({
             </div>
 
             {/* Add Button */}
-            {showAddButton && (
+            {showAddButton && isAdmin && (
                 <PrimaryButton
                     text="➕ Add Task"
                     onClick={onAddClick}
                 />
             )}
+
 
             {/* Task List */}
             <div className="space-y-2">
