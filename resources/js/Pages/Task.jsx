@@ -291,7 +291,7 @@ export default function Task() {
                         data={taskAll.data}
                         onTaskClick={handleTaskClick}
                         onAddClick={() => handleAddClick('task_all')}
-                        showAddButton={true}
+                        showAddButton={false}
                         userRole={userRole} // <-- pass userRole here
                         paginationLinks={taskAll.links}
                         paginationCurrentPage={taskAll.current_page}

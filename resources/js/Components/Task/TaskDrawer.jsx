@@ -395,7 +395,7 @@ export default function TaskDrawer({
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            {/* <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <PrimaryButton
                                     text={isAddModeActive ? "Add Task" : "Save Changes"}
                                     onClick={isAddModeActive ? saveAdd : saveEdit}
@@ -417,7 +417,7 @@ export default function TaskDrawer({
                                     }}
                                     className="flex-1"
                                 />
-                            </div>
+                            </div> */}
                         </div>
                     ) : (
                         /* View Mode */
@@ -504,7 +504,7 @@ export default function TaskDrawer({
 
                             {/* Task History/Updates */}
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between">
+                                {/* <div className="flex items-center justify-between">
                                     <h3 className="text-lg font-semibold text-foreground">History</h3>
                                     {isAdmin && !currentData.showAddUpdate && (
                                         <PrimaryButton
@@ -514,7 +514,7 @@ export default function TaskDrawer({
                                             }}
                                         />
                                     )}
-                                </div>
+                                </div> */}
 
 
                                 {/* Add New Update Form */}
@@ -702,7 +702,7 @@ export default function TaskDrawer({
                             </div>
 
                             {/* Action Buttons */}
-                            {isAdmin && (
+                            {/* {isAdmin && (
                                 <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                     <PrimaryButton
                                         text="Edit Task"
@@ -717,7 +717,7 @@ export default function TaskDrawer({
                                         </DangerButton>
                                     )}
                                 </div>
-                            )}
+                            )} */}
                         </>
                     )}
                 </div>

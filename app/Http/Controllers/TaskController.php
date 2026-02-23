@@ -152,61 +152,61 @@ class TaskController extends Controller
     /**
      * STORE
      */
-public function store(Request $request)
-{
-    // 🔒 Only admin can create
-    if (auth()->user()->user_type !== 'admin') {
-        abort(403);
+    public function store(Request $request)
+    {
+        // 🔒 Only admin can create
+        if (auth()->user()->user_type !== 'admin') {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'task_name'   => 'required|string|max:255',
+            'assignee' => 'nullable|array',
+            'assignee.*' => 'exists:users,id',
+            'division'    => 'required', // array or single
+            'last_action' => 'nullable|string|max:255',
+            'status'      => 'required|string|max:255',
+            'priority'    => 'nullable|string|max:255',
+            'created_at'  => 'sometimes|nullable|date',
+            'due_date'    => 'nullable|date',
+            'description' => 'nullable|string',
+        ]);
+
+        // Normalize dates
+        $createdAt = !empty($validated['created_at'])
+            ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay()
+            : now();
+
+        $dueDate = !empty($validated['due_date'])
+            ? \Carbon\Carbon::parse($validated['due_date'])->startOfDay()
+            : null;
+
+        $task = Task::create([
+            'name'        => $validated['task_name'],
+            'last_action' => $validated['last_action'] ?? null,
+            'assignee' => 'sometimes|array',
+            'assignee.*' => 'exists:users,id',
+            'status'      => $validated['status'],
+            'priority'    => $validated['priority'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'due_date'    => $dueDate,
+            'created_at'  => $createdAt,
+            'updated_at'  => $createdAt,
+        ]);
+
+        if (array_key_exists('assignee', $validated)) {
+            $task->users()->sync($validated['assignee'] ?? []);
+        }
+
+        // Handle divisions
+        $divisionIds = is_array($validated['division'])
+            ? $validated['division']
+            : [$validated['division']];
+
+        $task->divisions()->sync($divisionIds);
+
+        return back()->with('success', 'Task created');
     }
-
-    $validated = $request->validate([
-        'task_name'   => 'required|string|max:255',
-        'assignee' => 'nullable|array',
-        'assignee.*' => 'exists:users,id',
-        'division'    => 'required', // array or single
-        'last_action' => 'nullable|string|max:255',
-        'status'      => 'required|string|max:255',
-        'priority'    => 'nullable|string|max:255',
-        'created_at'  => 'sometimes|nullable|date',
-        'due_date'    => 'nullable|date',
-        'description' => 'nullable|string',
-    ]);
-
-    // Normalize dates
-    $createdAt = !empty($validated['created_at'])
-        ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay()
-        : now();
-
-    $dueDate = !empty($validated['due_date'])
-        ? \Carbon\Carbon::parse($validated['due_date'])->startOfDay()
-        : null;
-
-    $task = Task::create([
-        'name'        => $validated['task_name'],
-        'last_action' => $validated['last_action'] ?? null,
-        'assignee' => 'sometimes|array',
-        'assignee.*' => 'exists:users,id',
-        'status'      => $validated['status'],
-        'priority'    => $validated['priority'] ?? null,
-        'description' => $validated['description'] ?? null,
-        'due_date'    => $dueDate,
-        'created_at'  => $createdAt,
-        'updated_at'  => $createdAt,
-    ]);
-
-    if (array_key_exists('assignee', $validated)) {
-        $task->users()->sync($validated['assignee'] ?? []);
-    }
-
-    // Handle divisions
-    $divisionIds = is_array($validated['division'])
-        ? $validated['division']
-        : [$validated['division']];
-
-    $task->divisions()->sync($divisionIds);
-
-    return back()->with('success', 'Task created');
-}
 
 
     /**
