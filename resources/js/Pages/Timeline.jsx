@@ -108,7 +108,8 @@ export default function Timeline({ activities = {} }) {
                                                             <ul className="list-disc list-inside space-y-1">
                                                                 {Object.entries(activity.changes).map(([key, change]) => (
                                                                     <li key={key}>
-                                                                        <span className="font-medium">{key}:</span> {String(change.from || 'N/A')} → {String(change.to || 'N/A')}
+                                                                        <span className="font-medium">{key}:</span> {String(change.old ?? change.from ?? 'N/A')} → {String(change.new ?? change.to ?? 'N/A')}
+
                                                                     </li>
                                                                 ))}
                                                             </ul>

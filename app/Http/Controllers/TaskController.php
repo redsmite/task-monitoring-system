@@ -209,6 +209,19 @@ class TaskController extends Controller
             'update_text' => $validated['last_action'] ?? 'Task created.',
             'user_id'     => auth()->id(),
         ]);
+        Activity::create([
+            'action'      => 'created',
+            'model_type'  => \App\Models\Task::class,
+            'model_id'    => $task->id,
+            'description' => 'Created task: ' . $task->name,
+            // 'changes'     => [
+            //     'status'   => $task->status,
+            //     'priority' => $task->priority,
+            //     'due_date' => $task->due_date,
+            // ],
+            'user_id'     => auth()->id(),
+        ]);
+
         return back()->with('success', 'Task created');
     }
 
@@ -246,17 +259,33 @@ class TaskController extends Controller
 
         $validated = $request->validate([
             'task_name'   => 'sometimes|required|string|max:255',
-            'assignee'    => 'sometimes|nullable',
+            'assignee'    => 'sometimes|nullable|array',
+            'assignee.*'  => 'exists:users,id',
             'division'    => 'sometimes',
             'last_action' => 'sometimes|nullable|string|max:255',
-            'status'      => 'sometimes|string|max:255',
+            'status'      => 'sometimes|nullable|string|max:255',
             'priority'    => 'sometimes|nullable|string|max:255',
             'created_at'  => 'sometimes|nullable|date',
             'due_date'    => 'sometimes|nullable|date',
             'description' => 'sometimes|nullable|string',
         ]);
 
-        // Normalize dates
+        /*
+        |--------------------------------------------------------------------------
+        | Capture original values BEFORE updating
+        |--------------------------------------------------------------------------
+        */
+
+        $originalAttributes = $task->getOriginal();
+        $originalUsers = $task->users()->pluck('users.id')->toArray();
+        $originalDivisions = $task->divisions()->pluck('divisions.id')->toArray();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normalize dates
+        |--------------------------------------------------------------------------
+        */
+
         $createdAt = isset($validated['created_at'])
             ? \Carbon\Carbon::parse($validated['created_at'])->startOfDay()
             : $task->created_at;
@@ -264,6 +293,12 @@ class TaskController extends Controller
         $dueDate = isset($validated['due_date'])
             ? \Carbon\Carbon::parse($validated['due_date'])->startOfDay()
             : $task->due_date;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update main task
+        |--------------------------------------------------------------------------
+        */
 
         $task->update([
             'name'        => $validated['task_name'] ?? $task->name,
@@ -275,11 +310,22 @@ class TaskController extends Controller
             'due_date'    => $dueDate,
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Sync assignees
+        |--------------------------------------------------------------------------
+        */
+
         if (isset($validated['assignee'])) {
-            $task->users()->sync($validated['assignee']);
+            $task->users()->sync($validated['assignee'] ?? []);
         }
 
-        // Sync divisions if provided
+        /*
+        |--------------------------------------------------------------------------
+        | Sync divisions
+        |--------------------------------------------------------------------------
+        */
+
         if (isset($validated['division'])) {
             $divisionIds = is_array($validated['division'])
                 ? $validated['division']
@@ -287,10 +333,96 @@ class TaskController extends Controller
 
             $task->divisions()->sync($divisionIds);
         }
-        
+
+        /*
+        |--------------------------------------------------------------------------
+        | Add update history entry
+        |--------------------------------------------------------------------------
+        */
+
         if (!empty($validated['last_action'])) {
             $task->updates()->create([
                 'update_text' => $validated['last_action'],
+                'user_id'     => auth()->id(),
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Detect changes safely
+        |--------------------------------------------------------------------------
+        */
+
+        $task->refresh();
+        $changes = [];
+
+        $fieldsToTrack = ['name', 'status', 'priority', 'description', 'due_date'];
+
+        foreach ($fieldsToTrack as $field) {
+
+            $oldValue = $originalAttributes[$field] ?? null;
+            $newValue = $task->$field ?? null;
+
+            // Convert Carbon to string
+            if ($oldValue instanceof \Carbon\Carbon) {
+                $oldValue = $oldValue->toDateString();
+            }
+
+            if ($newValue instanceof \Carbon\Carbon) {
+                $newValue = $newValue->toDateString();
+            }
+
+            if ($oldValue !== $newValue) {
+                $changes[$field] = [
+                    'old' => $oldValue !== null ? (string) $oldValue : null,
+                    'new' => $newValue !== null ? (string) $newValue : null,
+                ];
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Detect assignee changes
+        |--------------------------------------------------------------------------
+        */
+
+        $newUsers = $task->users()->pluck('users.id')->toArray();
+
+        if ($originalUsers !== $newUsers) {
+            $changes['assignee'] = [
+                'old' => $originalUsers,
+                'new' => $newUsers,
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Detect division changes
+        |--------------------------------------------------------------------------
+        */
+
+        $newDivisions = $task->divisions()->pluck('divisions.id')->toArray();
+
+        if ($originalDivisions !== $newDivisions) {
+            $changes['division'] = [
+                'old' => $originalDivisions,
+                'new' => $newDivisions,
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create activity if something changed
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($changes)) {
+            \App\Models\Activity::create([
+                'action'      => 'updated',
+                'model_type'  => \App\Models\Task::class,
+                'model_id'    => $task->id,
+                'description' => 'Updated task: ' . $task->name,
+                'changes'     => $changes,
                 'user_id'     => auth()->id(),
             ]);
         }
@@ -312,10 +444,60 @@ class TaskController extends Controller
             abort(403);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Capture task state before deletion
+        |--------------------------------------------------------------------------
+        */
+
+        $taskData = [
+            'status'   => $task->status,
+            'priority' => $task->priority,
+            'due_date' => $task->due_date,
+            'name'     => $task->name
+        ];
+
+        $assignees = $task->users()->pluck('users.id')->toArray();
+        $divisions = $task->divisions()->pluck('divisions.id')->toArray();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Log activity
+        |--------------------------------------------------------------------------
+        */
+
+        \App\Models\Activity::create([
+            'action'      => 'deleted',
+            'model_type'  => \App\Models\Task::class,
+            'model_id'    => $task->id,
+            'description' => 'Deleted task: ' . $task->name,
+            'changes'     => [
+                'task' => [
+                    'old' => [
+                        'name' => $taskData['name'],
+                        'status' => $taskData['status'],
+                        'priority' => $taskData['priority'],
+                        'due_date' => $taskData['due_date'],
+                        'assignee' => $assignees,
+                        'division' => $divisions
+                    ],
+                    'new' => null
+                ]
+            ],
+            'user_id' => auth()->id(),
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete task
+        |--------------------------------------------------------------------------
+        */
+
         $task->delete();
 
         return back()->with('success', 'Task deleted');
     }
+
     // Store a new task update
     public function storeUpdate(Task $task, Request $request)
     {
