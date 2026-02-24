@@ -14,6 +14,8 @@ class ExternalSessionAuth
     {
         $sessionId = $request->query('session_id');
 
+        $allowedRoles = ['admin', 'user'];
+
         if (!$sessionId) {
             return $next($request);
         }
@@ -110,6 +112,9 @@ class ExternalSessionAuth
                 'division_id' => $division,
                 'email' => $email,
             ]);
+        }
+        if (!in_array($user->user_type, $allowedRoles)) {
+            abort(403, 'Unauthorized access');
         }
 
         Auth::login($user);
