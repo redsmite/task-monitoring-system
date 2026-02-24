@@ -280,75 +280,65 @@ export default function Dashboard({ task_counts = {}, recent_tasks = [], tasks_b
                             )}
                         </div>
 
-                        <TableContainer
-                            borderColor="border-purple-500 hidden md:block"
-                        >
-                            {/* Desktop Table View */}
-                            <div className="hidden md:block">
-                                <Table
-                                    thead={
-                                        <tr>
-                                            <TableHeader>Division</TableHeader>
-                                            <TableHeader>Not Started</TableHeader>
-                                            <TableHeader>In Progress</TableHeader>
-                                            <TableHeader>Completed</TableHeader>
-                                            <TableHeader>Total</TableHeader>
-                                        </tr>
-                                    }
-                                    tbody={
-                                        <>
-                                            {tasks_by_division.length > 0 ? (
-                                                tasks_by_division.map(division => (
-                                                    <TableRow key={division.id}>
-                                                        <TableData
-                                                            className="text-center"
-                                                        >
-                                                            <DivisionContainer bgcolor={division.division_color}>
-                                                                {division.division_name}
-                                                            </DivisionContainer>
-                                                        </TableData>
-                                                        <TableData
-                                                            className="text-center"
-                                                        >
-                                                            <span className="text-gray-600 dark:text-gray-400 font-semibold">
-                                                                {division.not_started || 0}
-                                                            </span>
-                                                        </TableData>
-                                                        <TableData
-                                                            className="text-center"
-                                                        >
-                                                            <span className="text-orange-600 dark:text-orange-400 font-semibold">
-                                                                {division.in_progress || 0}
-                                                            </span>
-                                                        </TableData>
-                                                        <TableData
-                                                            className="text-center"
-                                                        >
-                                                            <span className="text-green-600 dark:text-green-400 font-semibold">
-                                                                {division.completed || 0}
-                                                            </span>
-                                                        </TableData>
-                                                        <TableData
-                                                            className="text-center"
-                                                        >
-                                                            <span className="text-blue-600 dark:text-blue-400 font-bold">
-                                                                {division.total_tasks || 0}
-                                                            </span>
-                                                        </TableData>
-                                                    </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow
-                                                    colspan={5}
-                                                >
-                                                    No task by division
-                                                </TableRow>
-                                            )}
-                                        </>
-                                    }
-                                />
-                            </div>
-                        </TableContainer>
+                        <Table
+                            className="w-full table-fixed"
+                            thead={
+                                <tr>
+                                    <TableHeader className="w-[40%] text-center">
+                                        Division
+                                    </TableHeader>
+                                    <TableHeader className="w-[15%] text-center">
+                                        Not Started
+                                    </TableHeader>
+                                    <TableHeader className="w-[15%] text-center">
+                                        In Progress
+                                    </TableHeader>
+                                    <TableHeader className="w-[15%] text-center">
+                                        Completed
+                                    </TableHeader>
+                                    <TableHeader className="w-[15%] text-center">
+                                        Total
+                                    </TableHeader>
+                                </tr>
+                            }
+                            tbody={
+                                <>
+                                    {tasks_by_division.length > 0 ? (
+                                        tasks_by_division.map(division => (
+                                            <TableRow key={division.id}>
+                                                <TableData className="w-[40%] text-center break-words">
+                                                    <DivisionContainer bgcolor={division.division_color}>
+                                                        {division.division_name}
+                                                    </DivisionContainer>
+                                                </TableData>
+
+                                                <TableData className="w-[15%] text-center">
+                                                    {division.not_started || 0}
+                                                </TableData>
+
+                                                <TableData className="w-[15%] text-center">
+                                                    {division.in_progress || 0}
+                                                </TableData>
+
+                                                <TableData className="w-[15%] text-center">
+                                                    {division.completed || 0}
+                                                </TableData>
+
+                                                <TableData className="w-[15%] text-center font-bold">
+                                                    {division.total_tasks || 0}
+                                                </TableData>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableData colSpan={5} className="text-center">
+                                                No task by division
+                                            </TableData>
+                                        </TableRow>
+                                    )}
+                                </>
+                            }
+                        />
 
                         {/* Mobile Card View */}
                         <div className="block md:hidden">

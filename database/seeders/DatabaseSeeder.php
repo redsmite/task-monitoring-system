@@ -18,31 +18,30 @@ class DatabaseSeeder extends Seeder
         //User::factory(1)->create();
 
         $divisions = [
-            "PMD",
-            "LD",
-            "ORED",
-            "AD",
-            "ARD",
-            "FD",
-            "LPDD",
-            "SMD",
-            "ED",
-            "CDD",
-            "MEO",
-            "COA",
-            "DENR",
-            "PRCMO",
-            "MBSCMO",
-            "GMS",
-            "Manda",
-            "Impo",
-            "Others",
+            "Planning and Management Division",
+            "Legal Division",
+            "Office of the Regional Executive Director",
+            "Admin Division",
+            "Office of the Assistant Regional Director",
+            "Finance Division",
+            "Licenses, Patents, and Deeds Division",
+            "Surveys and Mapping Division",
+            "Enforcement Division",
+            "Conservation and Development Division",
+            "Metropolitan Environmental Office",
+            "Commission on Audit",
+            "Department of Environment and Natural Resources",
+            "Pasig River Coordinating and Management Office",
+            "Manila Bay Site Coordinating and Management Office",
+            "General Management and Supervision",
+            "Mandatories",
+            "Impositions",
         ];
 
         $colors = [
             "#FF6B6B", // PMD
             "#4ECDC4", // LD
-            "#556270", // ORED
+            "#bd3737", // ORED
             "#C7F464", // AD
             "#FFCC5C", // ARD
             "#88D8B0", // FD
