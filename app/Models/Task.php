@@ -16,6 +16,7 @@ class Task extends Model
         'last_action',
         'status',
         'priority',
+        'originating_office',
         'due_date',
         'created_at',
         'updated_at',

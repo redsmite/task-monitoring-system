@@ -51,7 +51,7 @@ export default function TaskTable({
     userRole = 'user',
 }) {
     // Check if admin
-    const isAdmin = userRole === 'admin';
+    const isAdmin = ['ored', 'ms', 'ts'].includes(userRole);
     // Search/Pagination/Ordering/URL //
     // Url
     const queryString = window.location.search;

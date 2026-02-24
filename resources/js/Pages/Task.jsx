@@ -20,6 +20,11 @@ export default function Task() {
         userRole = 'user',
     } = props;
 
+    const isUser = userRole === 'user';
+    const isOred = userRole === 'ored';
+    const isMs = userRole === 'ms';
+    const isTs = userRole === 'ts';
+
 
     // Sidebar state (Desktop)
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -222,6 +227,18 @@ export default function Task() {
         });
     };
 
+    // Tab Filter Handler
+    const handleOfficeTabClick = (office) => {
+        setActiveTableType(office);
+
+        router.get(route('task.index'), {
+            office: office
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true
+        });
+    };
 
     return (
         <AuthenticatedLayout
@@ -292,7 +309,11 @@ export default function Task() {
                         onTaskClick={handleTaskClick}
                         onAddClick={() => handleAddClick('task_all')}
                         showAddButton={false}
-                        userRole={userRole} // <-- pass userRole here
+                        canModify={
+                            (activeTableType === 'ored' && isOred) ||
+                            (activeTableType === 'ms' && isMs) ||
+                            (activeTableType === 'ts' && isTs)
+                        }
                         paginationLinks={taskAll.links}
                         paginationCurrentPage={taskAll.current_page}
                         paginationPerPage={taskAll.per_page}
@@ -302,12 +323,48 @@ export default function Task() {
                     />
 
                 </div>
+                {!isUser && (
+                    <div className="flex gap-4 mb-6">
+                        <button
+                            onClick={() => handleOfficeTabClick('ored')}
+                            className={`px-4 py-2 rounded ${
+                                activeTableType === 'ored'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-200'
+                            }`}
+                        >
+                            Regional Executive Director
+                        </button>
 
+                        <button
+                            onClick={() => handleOfficeTabClick('ms')}
+                            className={`px-4 py-2 rounded ${
+                                activeTableType === 'ms'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-200'
+                            }`}
+                        >
+                            Management Services
+                        </button>
+
+                        <button
+                            onClick={() => handleOfficeTabClick('ts')}
+                            className={`px-4 py-2 rounded ${
+                                activeTableType === 'ts'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-200'
+                            }`}
+                        >
+                            Technical Services
+                        </button>
+                    </div>
+                )}
                 {/* Task Tables - Desktop Only */}
                 <div className="hidden lg:flex flex-col gap-8">
                     <TaskTable
                         borderColor="border-violet-600"
                         tableTitle="Tasks"
+                        userRole={userRole}
                         tableIcon="📄"
                         data={taskAll.data}
                         users_data={users_data}
@@ -332,7 +389,11 @@ export default function Task() {
                         deleteTask={deleteTask}
                         onRowClick={handleTaskClick}
                         tableType="task_all"
-                        userRole={userRole}
+                        canModify={
+                            (activeTableType === 'ored' && isOred) ||
+                            (activeTableType === 'ms' && isMs) ||
+                            (activeTableType === 'ts' && isTs)
+                        }
                     />
 
 
@@ -340,6 +401,7 @@ export default function Task() {
                         tableTitle="Completed Tasks"
                         borderColor="border-green-600"
                         tableIcon="✅"
+                        userRole={userRole}
                         data={completed.data}
                         users_data={users_data}
                         divisions_data={divisions_data}
@@ -363,7 +425,11 @@ export default function Task() {
                         deleteTask={deleteTask}
                         onRowClick={handleTaskClick}
                         tableType="completed"
-                        userRole={userRole}
+                        canModify={
+                            (activeTableType === 'ored' && isOred) ||
+                            (activeTableType === 'ms' && isMs) ||
+                            (activeTableType === 'ts' && isTs)
+                        }
                     />
                 </div>
             </MainContainer>

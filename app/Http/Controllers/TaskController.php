@@ -21,141 +21,202 @@ class TaskController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->user_type === 'admin') {
-            return true;
+        // Regular user → only their division
+        if ($user->user_type === 'user') {
+            return $task->divisions()
+                ->where('division_id', $user->division_id)
+                ->exists();
         }
 
-        return $task->divisions()
-            ->where('division_id', $user->division_id)
-            ->exists();
+        // Admin types → must match originating_office
+        if (in_array($user->user_type, ['ored', 'ms', 'ts'])) {
+            return $task->originating_office === $user->user_type;
+        }
+
+        return false;
     }
 
     /**
      * INDEX
      */
-    public function index(Request $request)
-    {
-        $user = auth()->user();
+public function index(Request $request)
+{
+    $user = auth()->user();
 
-        $divisions = Division::all();
-        $employees = User::orderBy('last_name', 'asc')->get();
+    $divisions = Division::all();
+    $employees = User::orderBy('last_name', 'asc')->get();
 
-        $taskAllPage = $request->get('task_all_page', 1);
-        $completedPage = $request->get('completed_page', 1);
+    /*
+    |--------------------------------------------------------------------------
+    | Optional Office Filter (Frontend Tabs Support)
+    |--------------------------------------------------------------------------
+    | This allows:
+    | ?office=ored
+    | ?office=ms
+    | ?office=ts
+    |
+    */
+    $officeFilter = $request->get('office');
 
-        $taskAllSearch = $request->get('task_all_search', '');
-        $completedSearch = $request->get('completed_search', '');
-
-        $taskAllSort = $request->get('task_all_sort', 'desc');
-        $completedSort = $request->get('completed_sort', 'desc');
-
-        $applySearch = function ($query, $search) {
-            if (!empty($search)) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%$search%")
-                        ->orWhere('last_action', 'like', "%$search%")
-                        ->orWhereHas('updates', fn($u) => $u->where('update_text', 'like', "%$search%"))
-                        ->orWhereHas('users', fn($u) =>
-                            $u->where('first_name', 'like', "%$search%")
-                              ->orWhere('last_name', 'like', "%$search%"))
-                        ->orWhereHas('divisions', fn($d) =>
-                            $d->where('division_name', 'like', "%$search%"));
-                });
-            }
-            return $query;
-        };
-
-        /*
-        |--------------------------------------------------------------------------
-        | TASK ALL QUERY
-        |--------------------------------------------------------------------------
-        */
-        $taskAllQuery = Task::with([
-            'divisions',
-            'users.division',   // ← ADD THIS
-            'latestUpdate'
-        ])->whereIn('status', ['not_started', 'in_progress']);
-
-        if ($user->user_type !== 'admin') {
-            $taskAllQuery->whereHas('divisions', function ($q) use ($user) {
-                $q->where('division_id', $user->division_id);
-            });
-        }
-
-        $taskAll = $applySearch(
-            $taskAllQuery->orderByRaw("
-                CASE 
-                    WHEN priority = 'Urgent' THEN 0
-                    WHEN priority = 'Regular' THEN 2
-                    ELSE 1
-                END
-            ")
-            ->orderByRaw("due_date IS NULL, due_date ASC"),
-            $taskAllSearch
-        )->paginate(15, ['*'], 'task_all_page', $taskAllPage);
-
-        /*
-        |--------------------------------------------------------------------------
-        | COMPLETED QUERY
-        |--------------------------------------------------------------------------
-        */
-        $completedQuery = Task::with([
-            'divisions',
-            'users.division',   // ← ADD THIS
-            'latestUpdate'
-        ])->where('status', 'completed');
-
-
-        if ($user->user_type !== 'admin') {
-            $completedQuery->whereHas('divisions', function ($q) use ($user) {
-                $q->where('division_id', $user->division_id);
-            });
-        }
-
-        $completed = $applySearch(
-            $completedQuery->orderByRaw("
-                CASE 
-                    WHEN priority = 'Urgent' THEN 0
-                    WHEN priority = 'Regular' THEN 2
-                    ELSE 1
-                END
-            ")
-            ->orderByRaw("due_date IS NULL, due_date ASC"),
-            $completedSearch
-        )->paginate(15, ['*'], 'completed_page', $completedPage);
-
-        return Inertia::render('Task', [
-            'userRole' => $user->user_type,
-            'divisions_data' => $divisions,
-            'users_data' => $employees,
-
-            'taskAll' => [
-                'data' => TaskResource::collection($taskAll->items())->resolve(),
-                'links' => $taskAll->linkCollection()->toArray(),
-                'current_page' => $taskAll->currentPage(),
-                'last_page' => $taskAll->lastPage(),
-                'per_page' => $taskAll->perPage(),
-                'total' => $taskAll->total(),
-            ],
-
-            'completed' => [
-                'data' => TaskResource::collection($completed->items())->resolve(),
-                'links' => $completed->linkCollection()->toArray(),
-                'current_page' => $completed->currentPage(),
-                'last_page' => $completed->lastPage(),
-                'per_page' => $completed->perPage(),
-                'total' => $completed->total(),
-            ],
-        ]);
+    if (!in_array($officeFilter, ['ored','ms','ts'])) {
+        $officeFilter = null;
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Search Helper
+    |--------------------------------------------------------------------------
+    */
+    $applySearch = function ($query, $search) {
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('last_action', 'like', "%$search%")
+                    ->orWhereHas('updates', fn($u) =>
+                        $u->where('update_text', 'like', "%$search%")
+                    )
+                    ->orWhereHas('users', fn($u) =>
+                        $u->where('first_name', 'like', "%$search%")
+                            ->orWhere('last_name', 'like', "%$search%")
+                    )
+                    ->orWhereHas('divisions', fn($d) =>
+                        $d->where('division_name', 'like', "%$search%")
+                    );
+            });
+        }
+
+        return $query;
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Base Task Queries
+    |--------------------------------------------------------------------------
+    */
+
+    $taskAllQuery = Task::with([
+        'divisions',
+        'users.division',
+        'latestUpdate'
+    ])->whereIn('status', ['not_started','in_progress']);
+
+    $completedQuery = Task::with([
+        'divisions',
+        'users.division',
+        'latestUpdate'
+    ])->where('status','completed');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Role Based Filtering
+    |--------------------------------------------------------------------------
+    */
+
+    if ($user->user_type === 'user') {
+
+        // Regular user → division restriction only
+        $taskAllQuery->whereHas('divisions', function ($q) use ($user) {
+            $q->where('division_id', $user->division_id);
+        });
+
+        $completedQuery->whereHas('divisions', function ($q) use ($user) {
+            $q->where('division_id', $user->division_id);
+        });
+    }
+    else {
+
+        // Admins → optional office filter
+        if ($officeFilter) {
+            $taskAllQuery->where('originating_office', $officeFilter);
+            $completedQuery->where('originating_office', $officeFilter);
+        }
+        // Otherwise show ALL tasks
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sorting
+    |--------------------------------------------------------------------------
+    */
+
+    $taskAllPage = $request->get('task_all_page', 1);
+    $completedPage = $request->get('completed_page', 1);
+
+    $taskAllSearch = $request->get('task_all_search','');
+    $completedSearch = $request->get('completed_search','');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Query Execution
+    |--------------------------------------------------------------------------
+    */
+
+    $taskAll = $applySearch(
+        $taskAllQuery->orderByRaw("
+            CASE 
+                WHEN priority = 'Urgent' THEN 0
+                WHEN priority = 'Regular' THEN 2
+                ELSE 1
+            END
+        ")
+        ->orderByRaw("due_date IS NULL, due_date ASC"),
+        $taskAllSearch
+    )->paginate(15,['*'],'task_all_page',$taskAllPage);
+
+    $completed = $applySearch(
+        $completedQuery->orderByRaw("
+            CASE 
+                WHEN priority = 'Urgent' THEN 0
+                WHEN priority = 'Regular' THEN 2
+                ELSE 1
+            END
+        ")
+        ->orderByRaw("due_date IS NULL, due_date ASC"),
+        $completedSearch
+    )->paginate(15,['*'],'completed_page',$completedPage);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Response
+    |--------------------------------------------------------------------------
+    */
+
+    return Inertia::render('Task', [
+        'userRole' => $user->user_type,
+        'isAdmin' => in_array($user->user_type,['ored','ms','ts']),
+        'divisions_data' => $divisions,
+        'users_data' => $employees,
+
+        'taskAll' => [
+            'data' => TaskResource::collection($taskAll->items())->resolve(),
+            'links' => $taskAll->linkCollection()->toArray(),
+            'current_page' => $taskAll->currentPage(),
+            'last_page' => $taskAll->lastPage(),
+            'per_page' => $taskAll->perPage(),
+            'total' => $taskAll->total(),
+        ],
+
+        'completed' => [
+            'data' => TaskResource::collection($completed->items())->resolve(),
+            'links' => $completed->linkCollection()->toArray(),
+            'current_page' => $completed->currentPage(),
+            'last_page' => $completed->lastPage(),
+            'per_page' => $completed->perPage(),
+            'total' => $completed->total(),
+        ],
+    ]);
+}
 
     /**
      * STORE
      */
     public function store(Request $request)
     {
-        // 🔒 Only admin can create
-        if (auth()->user()->user_type !== 'admin') {
+        $user = auth()->user();
+
+        if (!in_array($user->user_type, ['ored', 'ms', 'ts'])) {
             abort(403);
         }
 
@@ -183,9 +244,8 @@ class TaskController extends Controller
 
         $task = Task::create([
             'name'        => $validated['task_name'],
+            'originating_office' => $user->user_type,
             'last_action' => $validated['last_action'] ?? null,
-            'assignee' => 'sometimes|array',
-            'assignee.*' => 'exists:users,id',
             'status'      => $validated['status'],
             'priority'    => $validated['priority'] ?? null,
             'description' => $validated['description'] ?? null,
@@ -253,7 +313,7 @@ class TaskController extends Controller
         }
 
         // 🔒 Only admin can update
-        if (auth()->user()->user_type !== 'admin') {
+        if (!in_array(auth()->user()->user_type, ['ored', 'ms', 'ts'])) {
             abort(403);
         }
 
@@ -440,7 +500,7 @@ class TaskController extends Controller
             abort(403);
         }
 
-        if (auth()->user()->user_type !== 'admin') {
+        if (!in_array(auth()->user()->user_type, ['ored', 'ms', 'ts'])) {
             abort(403);
         }
 
@@ -501,7 +561,7 @@ class TaskController extends Controller
     // Store a new task update
     public function storeUpdate(Task $task, Request $request)
     {
-        if (auth()->user()->user_type !== 'admin') {
+        if (!in_array(auth()->user()->user_type, ['ored', 'ms', 'ts'])) {
             abort(403);
         }
 
@@ -521,7 +581,7 @@ class TaskController extends Controller
     // Update an existing task update
     public function updateUpdate(Task $task, TaskUpdate $update, Request $request)
     {
-        if (auth()->user()->user_type !== 'admin') {
+        if (!in_array(auth()->user()->user_type, ['ored', 'ms', 'ts'])) {
             abort(403);
         }
 
@@ -539,7 +599,7 @@ class TaskController extends Controller
     // Delete a task update
     public function destroyUpdate(Task $task, TaskUpdate $update)
     {
-        if (auth()->user()->user_type !== 'admin') {
+        if (!in_array(auth()->user()->user_type, ['ored', 'ms', 'ts'])) {
             abort(403);
         }
 

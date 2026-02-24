@@ -14,7 +14,6 @@ class ExternalSessionAuth
     {
         $sessionId = $request->query('session_id');
 
-        $allowedRoles = ['admin', 'user'];
 
         if (!$sessionId) {
             return $next($request);
@@ -113,11 +112,25 @@ class ExternalSessionAuth
                 'email' => $email,
             ]);
         }
+
+        // --------------------------------------------------
+        // Role whitelist security check (FINAL GUARD)
+        // --------------------------------------------------
+
+        $allowedRoles = ['user', 'ored', 'ms', 'ts'];
+
         if (!in_array($user->user_type, $allowedRoles)) {
+
+            // Force logout safety cleanup
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
             abort(403, 'Unauthorized access');
         }
 
         Auth::login($user);
+        
         $request->session()->regenerate();
 
         return $next($request);

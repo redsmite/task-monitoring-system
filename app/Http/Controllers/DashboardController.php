@@ -25,7 +25,7 @@ class DashboardController extends Controller
         $taskQuery = Task::query();
 
         // If NOT admin → only show tasks in user's division
-        if ($user->user_type !== 'admin') {
+        if (!in_array($user->user_type, ['ored', 'ms', 'ts'])) {
             $taskQuery->whereHas('divisions', function ($q) use ($user) {
                 $q->where('division_id', $user->division_id);
             });
@@ -69,7 +69,7 @@ class DashboardController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if ($user->user_type === 'admin') {
+        if (in_array($user->user_type, ['ored', 'ms', 'ts'])) {
             // Admin → show all divisions
             $divisions = Division::withCount('tasks')
                 ->having('tasks_count', '>', 0)
@@ -89,7 +89,7 @@ class DashboardController extends Controller
             });
 
             // If user → extra safety filter
-            if ($user->user_type !== 'admin') {
+            if (!in_array($user->user_type, ['ored', 'ms', 'ts'])) {
                 $base->whereHas('divisions', function ($q) use ($user) {
                     $q->where('division_id', $user->division_id);
                 });

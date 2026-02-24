@@ -41,4 +41,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Task::class, 'task_user')->withTimestamps();
     }
+    public function isAdmin()
+    {
+        return in_array($this->user_type, ['ored','ms','ts']);
+    }
 }
