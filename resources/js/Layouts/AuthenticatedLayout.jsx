@@ -50,14 +50,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                     >
                                         Divisions
                                     </NavLink> */}
-                                    {user.user_type === 'admin' && (
+                                    {/* {user.user_type === 'admin' && (
                                         <NavLink
                                             href={route('timeline.index')}
                                             active={route().current('timeline.index')}
                                         >
                                             Timeline
                                         </NavLink>
-                                    )}
+                                    )} */}
                                 </div>
                             </div>
                             <div className="hidden lg:ms-6 lg:flex lg:items-center space-x-4">
@@ -69,7 +69,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                                     type="button"
                                                     className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none dark:bg-zinc-900 dark:text-gray-400 dark:hover:text-gray-300 cursor-pointer"
                                                 >
-                                                    {user.last_name}, {user.first_name}
+                                                    Go Back
                                                 </button>
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -171,25 +171,25 @@ export default function AuthenticatedLayout({ header, children }) {
                             >
                                 Divisions
                             </ResponsiveNavLink> */}
-                            {user.user_type === 'admin' && (
+                            {/* {user.user_type === 'admin' && (
                                 <ResponsiveNavLink
                                     href={route('timeline.index')}
                                     active={route().current('timeline.index')}
                                 >
                                     Timeline
                                 </ResponsiveNavLink>
-                            )}
+                            )} */}
                         </div>
 
                         <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
-                            <div className="px-4">
+                            {/* <div className="px-4">
                                 <div className="text-base font-medium text-gray-800 dark:text-gray-200">
                                     {user.last_name}, {user.first_name}
                                 </div>
                                 <div className="text-sm font-medium text-gray-500">
                                     {user.email}
                                 </div>
-                            </div>
+                            </div> */}
 
                             <div className="mt-3 space-y-1">
                                 {/* <ResponsiveNavLink href={route('profile.edit')}>
