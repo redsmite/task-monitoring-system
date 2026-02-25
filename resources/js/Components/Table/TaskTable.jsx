@@ -240,10 +240,10 @@ export default function TaskTable({
         setIsAddModalOpen(true);
     };
 
-const closeAddModal = () => {
-    setIsAddModalOpen(false);
-    resetAddData();
-};
+    const closeAddModal = () => {
+        setIsAddModalOpen(false);
+        resetAddData();
+    };
 
     // Add
     const updateAddTaskData = (field, value) => {
@@ -257,22 +257,27 @@ const closeAddModal = () => {
     };
 
     // Save Add
-    const saveAdd = () => {
-        postAddData(route('task.store'), {
-            method: 'post',
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => {
-                toast.success("Task added successfully!");
-                ToggleAdd()
-                resetAddData();
-            },
-            onError: (errors) => {
-                const messages = Object.values(errors).flat().join(" ");
-                toast.error(messages || "Something went wrong");
-            }
+    const saveAdd = async () => {
+        return new Promise((resolve) => {
+            postAddData(route('task.store'), {
+                method: 'post',
+                preserveScroll: true,
+                preserveState: true,
+
+                onSuccess: () => {
+                    toast.success("Task added successfully!");
+                    resetAddData();
+                    resolve(true);
+                },
+
+                onError: (errors) => {
+                    const messages = Object.values(errors).flat().join(" ");
+                    toast.error(messages || "Something went wrong");
+                    resolve(false);
+                }
+            });
         });
-    }
+    };
 
     // Preselect Status
     const preselectStatus = (tableType) => {
@@ -1175,6 +1180,7 @@ const closeAddModal = () => {
             <TaskAddModal
                 isOpen={isAddModalOpen}
                 onClose={closeAddModal}
+                onSaveSuccess={closeAddModal}
                 addData={addData}
                 updateAddTaskData={updateAddTaskData}
                 saveAdd={saveAdd}

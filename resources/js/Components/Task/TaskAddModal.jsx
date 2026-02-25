@@ -3,7 +3,6 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter,
 } from "@/components/ui/dialog";
 
 import PrimaryInput from "../Form/PrimaryInput";
@@ -11,7 +10,6 @@ import SelectInput from "../Form/SelectInput";
 import MultiSelectInput from "../Form/MultiSelectInput";
 import Datepicker from "../Form/Datepicker";
 import { SelectItem } from "@/Components/ui/select";
-import IconButton from "../Button/IconButton";
 
 export default function TaskAddModal({
     isOpen,
@@ -25,29 +23,53 @@ export default function TaskAddModal({
     tableType,
     preselectStatus,
     formatDateToSave,
+    onSaveSuccess,
 }) {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl">
-                
-                {/* Header */}
-                <div className="px-8 py-6 bg-blue-500">
-                    <DialogTitle className="text-2xl font-semibold text-white">
-                        Create New Task
-                    </DialogTitle>
-                    <p className="text-sm text-white mt-1">
-                        Fill in the task details below
-                    </p>
+            <DialogContent className="
+                max-w-4xl
+                p-0
+                overflow-hidden
+                rounded-2xl
+                shadow-2xl
+                border-0
+                backdrop-blur-sm
+            ">
+
+                {/* ===== HEADER ===== */}
+                <div className="
+                    bg-gradient-to-r from-blue-600 to-blue-500
+                    px-8 py-7
+                ">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-semibold text-white tracking-tight">
+                            Create New Task
+                        </DialogTitle>
+
+                        <p className="text-blue-100 text-sm mt-1">
+                            Fill in the task details to track work efficiently
+                        </p>
+                    </DialogHeader>
                 </div>
 
-                {/* Body */}
-                <div className="px-8 py-8 space-y-8 max-h-[70vh] overflow-y-auto">
+                {/* ===== BODY ===== */}
+                <div className="
+                    px-8 py-8
+                    space-y-10
+                    max-h-[70vh]
+                    overflow-y-auto
+                    bg-white
+                ">
 
-                    {/* BASIC INFO */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                            Basic Information
-                        </h3>
+                    {/* ===== BASIC INFO ===== */}
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-2 border-b pb-2">
+                            <div className="w-1 h-5 rounded bg-blue-500"></div>
+                            <h3 className="text-sm font-semibold text-gray-600 tracking-wide uppercase">
+                                Basic Information
+                            </h3>
+                        </div>
 
                         <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-2">
@@ -55,7 +77,6 @@ export default function TaskAddModal({
                                     Task Name
                                 </label>
                                 <PrimaryInput
-                                    type="text"
                                     placeholder="Enter task name"
                                     value={addData.task_name || ""}
                                     onChange={(e) =>
@@ -69,7 +90,6 @@ export default function TaskAddModal({
                                     Last Action
                                 </label>
                                 <PrimaryInput
-                                    type="text"
                                     placeholder="Enter last action"
                                     value={addData.last_action || ""}
                                     onChange={(e) =>
@@ -80,17 +100,21 @@ export default function TaskAddModal({
                         </div>
                     </div>
 
-                    {/* ASSIGNMENT */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                            Assignment
-                        </h3>
+                    {/* ===== ASSIGNMENT ===== */}
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-2 border-b pb-2">
+                            <div className="w-1 h-5 rounded bg-indigo-500"></div>
+                            <h3 className="text-sm font-semibold text-gray-600 tracking-wide uppercase">
+                                Assignment
+                            </h3>
+                        </div>
 
                         <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700">
                                     Assignee
                                 </label>
+
                                 <MultiSelectInput
                                     placeholder="Select assignee"
                                     options={users_data.map(user => ({
@@ -122,7 +146,16 @@ export default function TaskAddModal({
                                 <label className="text-sm font-medium text-gray-700">
                                     Division
                                 </label>
-                                <div className="h-10 flex items-center px-3 rounded-md bg-gray-50 border text-sm text-gray-600">
+
+                                <div className="
+                                    h-11
+                                    flex items-center
+                                    px-4
+                                    rounded-lg
+                                    bg-gray-50
+                                    border border-gray-200
+                                    text-sm text-gray-600
+                                ">
                                     {Array.isArray(addData.division) && addData.division.length > 0
                                         ? divisions_data
                                             .filter(div =>
@@ -136,17 +169,21 @@ export default function TaskAddModal({
                         </div>
                     </div>
 
-                    {/* STATUS & DATES */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                            Status & Timeline
-                        </h3>
+                    {/* ===== STATUS & TIMELINE ===== */}
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-2 border-b pb-2">
+                            <div className="w-1 h-5 rounded bg-emerald-500"></div>
+                            <h3 className="text-sm font-semibold text-gray-600 tracking-wide uppercase">
+                                Status & Timeline
+                            </h3>
+                        </div>
 
                         <div className="grid grid-cols-4 gap-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700">
                                     Status
                                 </label>
+
                                 <SelectInput
                                     value={
                                         addData.status ||
@@ -157,15 +194,9 @@ export default function TaskAddModal({
                                         updateAddTaskData("status", value)
                                     }
                                 >
-                                    <SelectItem value="not_started">
-                                        Not Started
-                                    </SelectItem>
-                                    <SelectItem value="in_progress">
-                                        In Progress
-                                    </SelectItem>
-                                    <SelectItem value="completed">
-                                        Completed
-                                    </SelectItem>
+                                    <SelectItem value="not_started">Not Started</SelectItem>
+                                    <SelectItem value="in_progress">In Progress</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
                                 </SelectInput>
                             </div>
 
@@ -173,6 +204,7 @@ export default function TaskAddModal({
                                 <label className="text-sm font-medium text-gray-700">
                                     Priority
                                 </label>
+
                                 <SelectInput
                                     value={addData.priority || ""}
                                     onChange={(value) =>
@@ -188,6 +220,7 @@ export default function TaskAddModal({
                                 <label className="text-sm font-medium text-gray-700">
                                     Date Instructed
                                 </label>
+
                                 <Datepicker
                                     value={addData.created_at}
                                     onChange={(date) =>
@@ -203,6 +236,7 @@ export default function TaskAddModal({
                                 <label className="text-sm font-medium text-gray-700">
                                     Due Date
                                 </label>
+
                                 <Datepicker
                                     value={addData.due_date}
                                     onChange={(date) =>
@@ -217,23 +251,51 @@ export default function TaskAddModal({
                     </div>
                 </div>
 
-                {/* Footer */}
-                <DialogFooter className="px-8 py-6 border-t bg-gray-50 flex justify-end gap-3">
+                {/* ===== FOOTER ===== */}
+                <div className="
+                    px-8 py-5
+                    border-t
+                    bg-gray-50/80
+                    flex justify-end gap-3
+                ">
                     <button
                         onClick={onClose}
-                        className="px-5 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
+                        className="
+                            px-5 py-2.5
+                            rounded-xl
+                            border border-gray-300
+                            text-gray-600
+                            hover:bg-white
+                            transition
+                            font-medium
+                        "
                     >
                         Cancel
                     </button>
 
                     <button
-                        onClick={saveAdd}
-                        disabled={addProcessing}
-                        className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                        onClick={async () => {
+                            await saveAdd();
+
+                            if (onSaveSuccess) {
+                                onSaveSuccess();
+                            }
+                        }}
+                        className="
+                            px-6 py-2.5
+                            rounded-xl
+                            bg-gradient-to-r from-blue-600 to-blue-500
+                            text-white
+                            font-semibold
+                            hover:shadow-lg
+                            transition
+                            disabled:opacity-50
+                        "
                     >
                         {addProcessing ? "Saving..." : "Save Task"}
                     </button>
-                </DialogFooter>
+                </div>
+
             </DialogContent>
         </Dialog>
     );
