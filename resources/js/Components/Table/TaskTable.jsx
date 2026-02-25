@@ -413,6 +413,26 @@ export default function TaskTable({
         }
     }
 
+    const getOfficeBadgeStyle = (office) => {
+        if (!office) return "";
+
+        const normalized = office.toLowerCase().trim();
+
+        switch (normalized) {
+            case 'ored':
+                return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100';
+
+            case 'ms':
+                return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100';
+
+            case 'ts':
+                return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100';
+
+            default:
+                return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+        }
+    };
+
     // Formatting for displaying the add button
     // Sorting value
     const formattedSortValue = (sortValue) => {
@@ -664,10 +684,22 @@ export default function TaskTable({
                     >
                         {!isEditActive[task.id] && (
                             <>
-                                <TableData
-                                    customWidth="min-w-[210px] max-w-[210px]"
-                                >
-                                    {task?.name}
+                                <TableData customWidth="min-w-[210px] max-w-[210px]">
+                                    <div className="flex items-center gap-2 flex-wrap">
+
+                                        {/* Task Name */}
+                                        <span>{task?.name}</span>
+
+                                        {/* Office Badge */}
+                                        {task?.originating_office && (
+                                            <span
+                                                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getOfficeBadgeStyle(task.originating_office)}`}
+                                            >
+                                                {task.originating_office.toUpperCase()}
+                                            </span>
+                                        )}
+
+                                    </div>
                                 </TableData>
                                 <TableData className="text-center">
                                     <div className="flex flex-wrap gap-1 sm:gap-2 justify-center items-center">

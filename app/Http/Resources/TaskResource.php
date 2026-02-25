@@ -95,6 +95,7 @@ class TaskResource extends JsonResource
             }),
 
             'created_at' => $this->created_at ? $this->created_at->format('m/d/Y') : null,
+            'originating_office' => $this->originating_office,
         ];
     }
 }
