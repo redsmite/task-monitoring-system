@@ -33,7 +33,7 @@ export default function Task() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [viewedTask, setViewedTask] = useState(null);
     const [isAddMode, setIsAddMode] = useState(false);
-    const [activeTableType, setActiveTableType] = useState('');
+    const [activeTableType, setActiveTableType] = useState('ored');
 
     // Prevent body scroll when drawer or sidebar is open
     useEffect(() => {
@@ -237,9 +237,8 @@ export default function Task() {
     const handleOfficeTabClick = (office) => {
         setActiveTableType(office);
 
-        router.get(route('task.index'), {
-            office: office
-        }, {
+        router.visit(route('task.index'), {
+            data: { office },
             preserveState: true,
             preserveScroll: true,
             replace: true
@@ -292,7 +291,15 @@ export default function Task() {
                 {/* Task Lists - Mobile/Tablet Only */}
                 <div className="flex flex-col gap-6 lg:gap-8 lg:hidden">
                     <TaskList
-                        borderColor="border-violet-600"
+                        borderColor={
+                            activeTableType === 'ored'
+                                ? 'border-indigo-600'
+                                : activeTableType === 'ms'
+                                ? 'border-emerald-600'
+                                : activeTableType === 'ts'
+                                ? 'border-amber-500'
+                                : 'border-gray-300'
+                        }
                         title="All Tasks"
                         icon="📄"
                         data={taskAll.data}
@@ -308,7 +315,15 @@ export default function Task() {
                     />
 
                     <TaskList
-                        borderColor="border-violet-600"
+                        borderColor={
+                            activeTableType === 'ored'
+                                ? 'border-indigo-600'
+                                : activeTableType === 'ms'
+                                ? 'border-emerald-600'
+                                : activeTableType === 'ts'
+                                ? 'border-amber-500'
+                                : 'border-gray-300'
+                        }
                         title="All Tasks"
                         icon="📄"
                         data={taskAll.data}
@@ -330,45 +345,57 @@ export default function Task() {
 
                 </div>
                 {!isUser && (
-                    <div className="flex gap-4 mb-6">
-                        <button
-                            onClick={() => handleOfficeTabClick('ored')}
-                            className={`px-4 py-2 rounded ${
-                                activeTableType === 'ored'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200'
-                            }`}
-                        >
-                            Regional Executive Director
-                        </button>
+                    <div className="mb-8">
+                        <div className="inline-flex rounded-xl bg-gray-100 dark:bg-zinc-800 p-1 shadow-sm">
 
-                        <button
-                            onClick={() => handleOfficeTabClick('ms')}
-                            className={`px-4 py-2 rounded ${
-                                activeTableType === 'ms'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200'
-                            }`}
-                        >
-                            Management Services
-                        </button>
+                            <button
+                                onClick={() => handleOfficeTabClick('ored')}
+                                className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200
+                                    ${activeTableType === 'ored'
+                                        ? 'bg-indigo-600 text-white shadow-md'
+                                        : 'text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900/40'
+                                    }`}
+                            >
+                                ORED
+                            </button>
 
-                        <button
-                            onClick={() => handleOfficeTabClick('ts')}
-                            className={`px-4 py-2 rounded ${
-                                activeTableType === 'ts'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200'
-                            }`}
-                        >
-                            Technical Services
-                        </button>
+                            <button
+                                onClick={() => handleOfficeTabClick('ms')}
+                                className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200
+                                    ${activeTableType === 'ms'
+                                        ? 'bg-emerald-600 text-white shadow-md'
+                                        : 'text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
+                                    }`}
+                            >
+                                Management Services
+                            </button>
+
+                            <button
+                                onClick={() => handleOfficeTabClick('ts')}
+                                className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200
+                                    ${activeTableType === 'ts'
+                                        ? 'bg-amber-500 text-white shadow-md'
+                                        : 'text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+                                    }`}
+                            >
+                                Technical Services
+                            </button>
+
+                        </div>
                     </div>
                 )}
                 {/* Task Tables - Desktop Only */}
                 <div className="hidden lg:flex flex-col gap-8">
                     <TaskTable
-                        borderColor="border-violet-600"
+                        borderColor={
+                            activeTableType === 'ored'
+                                ? 'border-indigo-600'
+                                : activeTableType === 'ms'
+                                ? 'border-emerald-600'
+                                : activeTableType === 'ts'
+                                ? 'border-amber-500'
+                                : 'border-gray-300'
+                        }
                         tableTitle="Tasks"
                         userRole={userRole}
                         tableIcon="📄"
@@ -405,7 +432,15 @@ export default function Task() {
 
                     <TaskTable
                         tableTitle="Completed Tasks"
-                        borderColor="border-green-600"
+                    borderColor={
+                        activeTableType === 'ored'
+                            ? 'border-indigo-600'
+                            : activeTableType === 'ms'
+                            ? 'border-emerald-600'
+                            : activeTableType === 'ts'
+                            ? 'border-amber-500'
+                            : 'border-gray-300'
+                    }
                         tableIcon="✅"
                         userRole={userRole}
                         data={completed.data}
