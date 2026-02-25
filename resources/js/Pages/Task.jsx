@@ -33,7 +33,7 @@ export default function Task() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [viewedTask, setViewedTask] = useState(null);
     const [isAddMode, setIsAddMode] = useState(false);
-    const [activeTableType, setActiveTableType] = useState('ored');
+    const [activeTableType, setActiveTableType] = useState('');
 
     // Prevent body scroll when drawer or sidebar is open
     useEffect(() => {
