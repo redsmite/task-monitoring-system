@@ -438,8 +438,8 @@ const closeAddModal = () => {
 
         const officeMap = {
             ored: "Regional Executive Director",
-            ms: "Assistant Regional Director in Management Services",
-            ts: "Assistant Regional Director in Technical Services",
+            ms: "Assistant Regional Director for Management Services",
+            ts: "Assistant Regional Director for Technical Services",
         };
 
         return officeMap[office.toLowerCase()] || office;
