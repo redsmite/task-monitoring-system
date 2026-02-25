@@ -433,6 +433,18 @@ const closeAddModal = () => {
         }
     };
 
+    const getOfficeFullName = (office) => {
+        if (!office) return "";
+
+        const officeMap = {
+            ored: "Regional Executive Director",
+            ms: "Assistant Regional Director in Management Services",
+            ts: "Assistant Regional Director in Technical Services",
+        };
+
+        return officeMap[office.toLowerCase()] || office;
+    };
+
     const canModifyTask = (task) => {
         if (!task?.originating_office) return false;
 
@@ -710,7 +722,7 @@ const closeAddModal = () => {
                                             <span
                                                 className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getOfficeBadgeStyle(task.originating_office)}`}
                                             >
-                                                by {task.originating_office.toUpperCase()}
+                                                {getOfficeFullName(task.originating_office)}
                                             </span>
                                         )}
 
