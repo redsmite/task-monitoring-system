@@ -216,20 +216,30 @@ export default function Task() {
     const deleteTask = (taskId) => {
         if (!confirm("Are you sure you want to delete this task?")) return;
 
-        toast.loading("Deleting task...");
+        const loadingToast = toast.loading("Deleting task...");
 
         router.delete(route("task.destroy", taskId), {
             preserveState: true,
             preserveScroll: true,
+
             onSuccess: () => {
-                toast.dismiss();
+                toast.dismiss(loadingToast);
                 toast.success("Task deleted!");
             },
+
             onError: (errors) => {
-                const messages = Object.values(errors).flat().join(" ");
-                toast.dismiss();
-                toast.error(messages || "Something went wrong.");
+                toast.dismiss(loadingToast);
+
+                const messages = Object.values(errors || {})
+                    .flat()
+                    .join(" ");
+
+                toast.error(messages || "You are not authorized to delete this task.");
             },
+
+            onFinish: () => {
+                toast.dismiss(loadingToast);
+            }
         });
     };
 
