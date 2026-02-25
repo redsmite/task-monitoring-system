@@ -44,7 +44,7 @@ Route::middleware([ExternalSessionAuth::class])->group(function () {
                 Route::delete('/{update}', [TaskController::class, 'destroyUpdate'])->name('destroy');
             });
 
-            Route::resource('timeline', TimelineController::class)->only(['index','show']);
+            // Route::resource('timeline', TimelineController::class)->only(['index','show']);
             Route::resource('employee', EmployeeController::class)->only(['index','show']);
             Route::resource('division', DivisionsController::class)->only(['index','show']);
         });

@@ -17,7 +17,7 @@ export default function AuthenticatedLayout({ header, children }) {
             ored: "Office of the Regional Executive Director",
             ms: "Office of the Assistant Regional Director for Management Services",
             ts: "Office of the Assistant Regional Director for Technical Services",
-            user: "Division Chief / Director"
+            user: "DENR Official"
         };
 
         return map[type] || type;

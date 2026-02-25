@@ -125,6 +125,9 @@ export default function Task() {
 
     const handleAddClick = (tableType) => {
         setActiveTableType(tableType);
+
+        setDataAdd('office', tableType); 
+        
         setViewedTask(null);
         setIsAddMode(true);
         setDrawerOpen(true);
@@ -162,6 +165,7 @@ export default function Task() {
         priority: '',
         due_date: null,
         created_at: null,
+        office: activeTableType,
     })
 
     // Edit Task
@@ -184,6 +188,7 @@ export default function Task() {
         due_date: '',
         description: '',
         created_at: null,
+        office: activeTableType,
     })
 
     // Completed
@@ -204,6 +209,7 @@ export default function Task() {
         due_date: '',
         description: '',
         created_at: null,
+        office: activeTableType,
     })
 
     // Delete Task

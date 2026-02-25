@@ -16,7 +16,7 @@ export default function Sidebar({ open, onClose, task }) {
     // Admin Control
     const { props } = usePage();
     const userRole = props.userRole || 'user';
-    const isAdmin = userRole === 'admin';
+    const isAdmin = ['ored', 'ms', 'ts'].includes(userRole);
 
     // Description
     const [editDescriptionId, setEditDescriptionId] = useState(null);
