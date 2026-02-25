@@ -20,6 +20,7 @@ import StatusContainer from '../Misc/StatusContainer';
 import PriorityContainer from '../Misc/PriorityContainer';
 import ActionData from './ActionData';
 import ActionHeader from './ActionHeader';
+import TaskAddModal from "../Task/TaskAddModal";
 
 export default function TaskTable({
     borderColor = "border-blue-500",
@@ -210,40 +211,39 @@ export default function TaskTable({
 
     // Table Adding //
     // State
-    const [isAddActive, setIsAddActive] = useState(null);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     // Ensure only one TaskTable add row is open at a time across the page
-    useEffect(() => {
-        const handleAddToggle = (event) => {
-            const activeTable = event.detail?.tableType || null;
-            if (activeTable !== tableType) {
-                setIsAddActive(null);
-            }
-        };
+    // useEffect(() => {
+    //     const handleAddToggle = (event) => {
+    //         const activeTable = event.detail?.tableType || null;
+    //         if (activeTable !== tableType) {
+    //             setIsAddActive(null);
+    //         }
+    //     };
 
-        window.addEventListener('task-table-add-toggle', handleAddToggle);
-        return () => window.removeEventListener('task-table-add-toggle', handleAddToggle);
-    }, [tableType]);
+    //     window.addEventListener('task-table-add-toggle', handleAddToggle);
+    //     return () => window.removeEventListener('task-table-add-toggle', handleAddToggle);
+    // }, [tableType]);
 
     // Set
-    const ToggleAdd = () => {
+    const openAddModal = () => {
         resetAddData();
 
-        setIsAddActive((prev) => {
-            const next = prev ? null : tableType;
-            // Seed status to the table's default when opening the add row
-            if (!prev && !addData.status) {
-                setDataAdd((data) => ({
-                    ...data,
-                    status: preselectStatus(tableType),
-                }));
-            }
-            window.dispatchEvent(new CustomEvent('task-table-add-toggle', {
-                detail: { tableType: next }
+        if (!addData.status) {
+            setDataAdd((data) => ({
+                ...data,
+                status: preselectStatus(tableType),
             }));
-            return next;
-        });
+        }
+
+        setIsAddModalOpen(true);
     };
+
+const closeAddModal = () => {
+    setIsAddModalOpen(false);
+    resetAddData();
+};
 
     // Add
     const updateAddTaskData = (field, value) => {
@@ -438,6 +438,15 @@ export default function TaskTable({
 
         return task.originating_office === userRole;
     };
+    const canShowAddButton = () => {
+        if (!isAdmin) return false;
+
+        if (!userRole) return false;
+
+        if (tableType === 'task_all') return true;
+
+        return tableType === userRole;
+    };
 
     // Formatting for displaying the add button
     // Sorting value
@@ -528,7 +537,7 @@ export default function TaskTable({
 
             {formattedSortValue(sortValues) === tableType + '_' + 'desc' && tableType + '_page=1' === tableType + '_page=' + page && (
                 <>
-                    {isAdmin && !isAddActive && (
+                    {/* {canShowAddButton() && !isAddActive && (
                         <TableRow
                             onClick={() => ToggleAdd(tableType)}
                         >
@@ -539,9 +548,9 @@ export default function TaskTable({
                                 ➕ Add Task
                             </TableData>
                         </TableRow>
-                    )}
+                    )} */}
 
-                    {isAddActive && (
+                    {/* {isAddActive && (
                         <TableRow>
                             <TableData
                                 customWidth="min-w-[210px] max-w-[210px]"
@@ -671,7 +680,7 @@ export default function TaskTable({
                             )}
                         </TableRow>
 
-                    )}
+                    )} */}
                 </>
             )}
 
@@ -701,7 +710,7 @@ export default function TaskTable({
                                             <span
                                                 className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getOfficeBadgeStyle(task.originating_office)}`}
                                             >
-                                                {task.originating_office.toUpperCase()}
+                                                by {task.originating_office.toUpperCase()}
                                             </span>
                                         )}
 
@@ -959,7 +968,7 @@ export default function TaskTable({
 
             {formattedSortValue(sortValues) === tableType + '_' + 'asc' && formattedLastPageValue(paginationLastPage) === tableType + '_page=' + page && (
                 <>
-                    {isAdmin && !isAddActive && (
+                    {/* {canShowAddButton() && !isAddActive && (
                         <TableRow
                             onClick={() => ToggleAdd(tableType)}
                         >
@@ -970,7 +979,7 @@ export default function TaskTable({
                                 ➕ Add Task
                             </TableData>
                         </TableRow>
-                    )}
+                    )} */}
 
                     {isAddActive && (
                         <TableRow>
@@ -1070,7 +1079,7 @@ export default function TaskTable({
                                     <SelectItem value="Regular">Regular</SelectItem>
                                 </SelectInput>
                             </TableData>
-                            {isAddActive && (
+                            {/* {isAddActive && (
                                 <ActionData>
                                     <div className="flex items-center gap-3">
                                         <IconButton
@@ -1093,7 +1102,7 @@ export default function TaskTable({
                                         />
                                     </div>
                                 </ActionData>
-                            )}
+                            )} */}
                         </TableRow>
 
                     )}
@@ -1104,6 +1113,31 @@ export default function TaskTable({
 
     return (
         <div className="space-y-2">
+            {/* Add Task Button - Moved Above the Table */}
+            {canShowAddButton() && (
+            <button
+                onClick={openAddModal}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center gap-2 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                </svg>
+                <span>Add Task</span>
+            </button>
+            )}
+
+            {/* Table Container */}
             <TableContainer
                 borderColor={borderColor}
                 tableIcon={tableIcon}
@@ -1115,6 +1149,8 @@ export default function TaskTable({
                     tbody={TBODY_CONTENT}
                 />
             </TableContainer>
+
+            {/* Pagination */}
             <Pagination
                 links={paginationLinks}
                 current_page={paginationCurrentPage}
@@ -1122,6 +1158,20 @@ export default function TaskTable({
                 total={paginationTotal}
                 last_page={paginationLastPage}
                 tableType={tableType}
+            />
+
+            <TaskAddModal
+                isOpen={isAddModalOpen}
+                onClose={closeAddModal}
+                addData={addData}
+                updateAddTaskData={updateAddTaskData}
+                saveAdd={saveAdd}
+                addProcessing={addProcessing}
+                users_data={users_data}
+                divisions_data={divisions_data}
+                tableType={tableType}
+                preselectStatus={preselectStatus}
+                formatDateToSave={formatDateToSave}
             />
         </div>
     );
