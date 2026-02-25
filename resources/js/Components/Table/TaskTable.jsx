@@ -433,6 +433,12 @@ export default function TaskTable({
         }
     };
 
+    const canModifyTask = (task) => {
+        if (!task?.originating_office) return false;
+
+        return task.originating_office === userRole;
+    };
+
     // Formatting for displaying the add button
     // Sorting value
     const formattedSortValue = (sortValue) => {
@@ -893,7 +899,7 @@ export default function TaskTable({
                         )}
 
                         <ActionData>
-                            {!isEditActive[task.id] && isAdmin && (
+                            {!isEditActive[task.id] && isAdmin && canModifyTask(task) && (
                                 <div className="flex items-center gap-3">
                                     <IconButton
                                         tooltip="Edit Task"
