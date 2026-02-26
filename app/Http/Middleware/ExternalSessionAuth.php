@@ -96,7 +96,7 @@ class ExternalSessionAuth
                 'position' => $position,
                 'division_id' => $division,
                 'email' => $email,
-                'user_type' => 'user',
+                'user_type' => 'non-user',
                 'external_user_id' => $external->external_user_id,
             ]);
 
