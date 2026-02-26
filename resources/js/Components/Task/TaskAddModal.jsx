@@ -3,7 +3,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/Components/ui/dialog";
 
 import PrimaryInput from "../Form/PrimaryInput";
 import SelectInput from "../Form/SelectInput";
