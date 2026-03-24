@@ -576,9 +576,8 @@ class TaskController extends Controller
             abort(403);
         }
 
-
         $request->validate([
-            'update_text' => 'required|string|max:255',
+            'update_text' => 'required|string',
         ]);
 
         $task->updates()->create([
@@ -600,7 +599,7 @@ class TaskController extends Controller
         }
 
         $request->validate([
-            'update_text' => 'required|string|max:255',
+            'update_text' => 'required|string',
         ]);
 
         $update->update([
